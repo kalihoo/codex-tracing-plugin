@@ -64,6 +64,27 @@
     "tokenUsageUpdates": 0,
     "contentPersisted": false
   },
+  "appServerTokenUsageNotificationProbe": {
+    "source": "codex app-server --stdio",
+    "codexCli": "0.162.0-alpha.17.2",
+    "threadEphemeral": true,
+    "sandbox": "read-only",
+    "turnStatus": "completed",
+    "notificationMethod": "thread/tokenUsage/updated",
+    "notificationCount": 1,
+    "scope": "one local ephemeral App Server thread and turn",
+    "usageSnapshot": {
+      "inputTokens": 21081,
+      "cachedInputTokens": 13184,
+      "outputTokens": 5,
+      "reasoningOutputTokens": 0
+    },
+    "rawThreadIdPrintedOrPersisted": false,
+    "promptPrintedOrPersisted": false,
+    "temporaryWorkingDirectoryRemoved": true,
+    "pluginReceivedNotification": false,
+    "desktopThreadUsageVerified": false
+  },
   "desktopSidePanel": {
     "threadEntrypointAdvertised": true,
     "renderedInCodexDesktop": false,
