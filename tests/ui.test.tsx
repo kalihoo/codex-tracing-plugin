@@ -12,7 +12,7 @@ describe('fixture UI', () => {
   });
 
   it('renders the host-bound interface in Chinese by default with an English switch', () => {
-    const snapshot = SessionLensSnapshotSchema.parse({ schemaVersion: 1, mode: 'host-bound', sessionBinding: 'codex-thread-id', collectionEnabled: false, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: true, codexThreadIdPresent: true, identityMetadataKinds: ['thread'] } });
+    const snapshot = SessionLensSnapshotSchema.parse({ schemaVersion: 1, mode: 'host-bound', sessionBinding: 'codex-thread-id', collectionEnabled: false, captureAvailable: true, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: true, codexThreadIdPresent: true, identityMetadataKinds: ['thread'] } });
     const html = renderToStaticMarkup(<SessionLensView snapshot={snapshot} status="ready" busy={false} refresh={() => {}} advance={() => {}} />);
     expect(html).toContain('已识别当前 Codex 会话');
     expect(html).toContain('输入 Token');
@@ -22,7 +22,7 @@ describe('fixture UI', () => {
   });
 
   it('renders the interface in English when selected', () => {
-    const snapshot = SessionLensSnapshotSchema.parse({ schemaVersion: 1, mode: 'host-bound', sessionBinding: 'codex-thread-id', collectionEnabled: false, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: true, codexThreadIdPresent: true, identityMetadataKinds: ['thread'] } });
+    const snapshot = SessionLensSnapshotSchema.parse({ schemaVersion: 1, mode: 'host-bound', sessionBinding: 'codex-thread-id', collectionEnabled: false, captureAvailable: true, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: true, codexThreadIdPresent: true, identityMetadataKinds: ['thread'] } });
     const html = renderToStaticMarkup(<SessionLensView snapshot={snapshot} status="ready" busy={false} refresh={() => {}} advance={() => {}} language="en" onLanguageChange={() => {}} />);
     expect(html).toContain('Current Codex thread recognized');
     expect(html).toContain('Input tokens');
@@ -45,7 +45,7 @@ describe('fixture UI', () => {
     let calls = 0;
     const controller = new DemoController(async () => { calls++; return {}; });
     expect(() => controller.receive(result)).not.toThrow();
-    await expect(controller.refresh()).rejects.toThrow('No fixture session is open');
+    await expect(controller.refresh()).rejects.toThrow('No bound session is open');
     const html = renderToStaticMarkup(<SessionLensView snapshot={controller.current} status="host-unbound" busy={false} refresh={() => {}} advance={() => {}} />);
     expect(html).toContain('未绑定当前会话');
     expect(html).toContain('未采集');
@@ -77,7 +77,7 @@ describe('fixture UI', () => {
   it('refreshes the bound synthetic session after a new event arrives', async () => {
     const store = new DemoStore();
     const calls: string[] = [];
-    const controller = new DemoController(async (name, sessionId) => { calls.push(`${name}:${sessionId}`); return { structuredContent: store.read(sessionId) }; });
+    const controller = new DemoController(async (name, args) => { const sessionId = String(args.sessionId); calls.push(`${name}:${sessionId}`); return { structuredContent: store.read(sessionId) }; });
     controller.receive({ structuredContent: store.read('fixture-alpha') });
     store.advance('fixture-alpha');
     await controller.refresh();
@@ -102,12 +102,38 @@ describe('fixture UI', () => {
 
   it('shows a host-bound Codex thread without rendering its identifier or enabling collection', () => {
     const controller = new DemoController(async () => ({}));
-    controller.receive({ structuredContent: { schemaVersion: 1, mode: 'host-bound', sessionBinding: 'codex-thread-id', collectionEnabled: false, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: true, codexThreadIdPresent: true, identityMetadataKinds: ['thread'] } } });
+    controller.receive({ structuredContent: { schemaVersion: 1, mode: 'host-bound', sessionBinding: 'codex-thread-id', collectionEnabled: false, captureAvailable: true, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: true, codexThreadIdPresent: true, identityMetadataKinds: ['thread'] } } });
     const html = renderToStaticMarkup(<SessionLensView snapshot={controller.current} status="host-bound" busy={false} refresh={() => {}} advance={() => {}} />);
     expect(html).toContain('已识别当前 Codex 会话');
     expect(html).toContain('采集关闭');
+    expect(html).toContain('无法确认 hook 的 session_id 是否对应侧栏线程');
+    expect(html).toContain('已经开始的异步事件写入仍可能完成');
     expect(html).not.toContain('synthetic-private-id');
     expect(html).not.toContain('threadId');
+  });
+  it('enables per-thread metadata capture and refreshes a host-bound snapshot', async () => {
+    const calls: Array<{ name: string; args: Record<string, unknown> }> = [];
+    const afterEnable = { schemaVersion: 1, mode: 'host-bound', sessionBinding: 'codex-thread-id', collectionEnabled: true, captureAvailable: true, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: false, codexThreadIdPresent: true, identityMetadataKinds: ['thread'] } } as const;
+    const afterRefresh = { ...afterEnable, events: [{ id: '123e4567-e89b-42d3-a456-426614174000', hookEventName: 'UserPromptSubmit', occurredAt: '2026-10-30T10:00:00.000Z' }] } as const;
+    const controller = new DemoController(async (name, args) => {
+      calls.push({ name, args });
+      return { structuredContent: name === 'set_collection' ? afterEnable : afterRefresh };
+    });
+    controller.receive({ structuredContent: { ...afterEnable, collectionEnabled: false } });
+    await controller.setCollection(true);
+    await controller.refresh();
+
+    expect(calls).toEqual([
+      { name: 'set_collection', args: { enabled: true } },
+      { name: 'read_session', args: {} },
+    ]);
+    expect(controller.current).toMatchObject({ collectionEnabled: true, events: [{ hookEventName: 'UserPromptSubmit' }] });
+  });
+  it('explains unverified hook delivery and in-flight pause behavior in English', () => {
+    const snapshot = SessionLensSnapshotSchema.parse({ schemaVersion: 1, mode: 'host-bound', sessionBinding: 'codex-thread-id', collectionEnabled: true, captureAvailable: true, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: false, codexThreadIdPresent: true, identityMetadataKinds: ['thread'] } });
+    const html = renderToStaticMarkup(<SessionLensView snapshot={snapshot} status="host-capture-on" busy={false} refresh={() => {}} advance={() => {}} language="en" />);
+    expect(html).toContain('Session Lens cannot verify whether Codex trusted and ran this hook');
+    expect(html).toContain('an asynchronous event write already in progress may still finish');
   });
   it('escapes malicious content and renders unavailable usage explicitly', () => {
     const snapshot = new DemoStore().read('fixture-beta');

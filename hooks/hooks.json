@@ -1,9 +1,10 @@
 {
   "hooks": {
-    "SessionStart": [{
+    "UserPromptSubmit": [{
       "hooks": [{
         "type": "command",
-        "command": "/bin/sh \"${PLUGIN_ROOT}/hooks/noop.sh\"",
+        "command": "node \"${PLUGIN_ROOT}/dist/capture-hook.mjs\"",
+        "async": true,
         "timeout": 1
       }]
     }]

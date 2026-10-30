@@ -8,9 +8,18 @@ type ViewProps = {
   busy: boolean;
   refresh: () => void;
   advance: () => void;
+  setCollection?: (enabled: boolean) => void;
   language?: Language;
   onLanguageChange?: (language: Language) => void;
 };
+
+function formatObservedAt(value: string, language: Language): string {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return value;
+  return new Intl.DateTimeFormat(language === 'zh-CN' ? 'zh-CN' : 'en-US', {
+    dateStyle: 'medium', timeStyle: 'medium',
+  }).format(date);
+}
 
 function Header({ language, onLanguageChange, eyebrow, notice }: {
   language: Language;
@@ -34,7 +43,7 @@ function Header({ language, onLanguageChange, eyebrow, notice }: {
   </header>;
 }
 
-export function SessionLensView({ snapshot, status, revision, busy, refresh, advance, language = 'zh-CN', onLanguageChange = () => {} }: ViewProps) {
+export function SessionLensView({ snapshot, status, revision, busy, refresh, advance, setCollection, language = 'zh-CN', onLanguageChange = () => {} }: ViewProps) {
   const copy = messages[language];
   const statusText = formatStatus(language, status, revision);
 
@@ -49,11 +58,12 @@ export function SessionLensView({ snapshot, status, revision, busy, refresh, adv
       <h2>{copy.tokenUsageTitle}</h2>
       <dl><div><dt>{copy.inputTokens}</dt><dd>{copy.unavailable}</dd></div><div><dt>{copy.outputTokens}</dt><dd>{copy.unavailable}</dd></div><div><dt>{copy.source}</dt><dd>{copy.notConnected}</dd></div></dl>
     </section>
-    <footer>Session Lens 0.1.0-l0 · {copy.footerNoCapture}</footer>
+    <footer>Session Lens 0.1.1-l0 · {copy.footerNoCapture}</footer>
   </main>;
 
   if (snapshot.mode === 'host-bound') return <main lang={language}>
-    <Header language={language} onLanguageChange={onLanguageChange} eyebrow={copy.threadEyebrow} notice={copy.boundNotice} />
+    <Header language={language} onLanguageChange={onLanguageChange} eyebrow={copy.threadEyebrow}
+      notice={!snapshot.captureAvailable ? copy.boundNoticeDataUnavailable : snapshot.collectionEnabled ? copy.boundNoticeCollectionOn : copy.boundNotice} />
     <section aria-label={copy.hostBindingStatus}>
       <h2>{copy.boundTitle}</h2>
       <p>{copy.boundDescription}</p>
@@ -64,8 +74,30 @@ export function SessionLensView({ snapshot, status, revision, busy, refresh, adv
       <dl><div><dt>{copy.inputTokens}</dt><dd>{copy.unavailable}</dd></div><div><dt>{copy.outputTokens}</dt><dd>{copy.unavailable}</dd></div><div><dt>{copy.source}</dt><dd>{copy.notConnected}</dd></div></dl>
       <p className="muted">{copy.noRealUsage}</p>
     </section>
-    <section aria-label={copy.collectionStatus}><h2>{copy.collectionStatus}</h2><p>{copy.noHostCapture}</p></section>
-    <footer>Session Lens 0.1.0-l0 · {copy.footerBound}</footer>
+    <section aria-label={copy.collectionStatus}><h2>{copy.collectionStatus}</h2><p>{copy.noHostCapture}</p>
+      {!snapshot.captureAvailable && <p role="alert">{copy.captureStorageUnavailable}</p>}
+    </section>
+    <section aria-label={copy.events}>
+      <div className="section-heading"><h2>{copy.events} <span className="muted">{snapshot.events.length}</span></h2>
+        <div className="actions">
+          <button type="button" onClick={refresh} disabled={busy || !snapshot.captureAvailable}>{copy.refreshEvents}</button>
+          <button type="button" onClick={() => setCollection?.(!snapshot.collectionEnabled)} disabled={busy || !snapshot.captureAvailable}>
+            {snapshot.collectionEnabled ? copy.pauseCapture : copy.enableCapture}
+          </button>
+        </div>
+      </div>
+      <p>{copy.localCaptureExplanation}</p>
+      <p className="muted">{copy.captureBindingUnverified}</p>
+      <p className="muted">{copy.capturePauseNote}</p>
+      <p role="status" aria-live="polite">{snapshot.collectionEnabled ? copy.captureEnabled : copy.capturePaused}</p>
+      {snapshot.events.length === 0 ? <p className="muted">{copy.noObservedEvents}</p> : <ol>
+        {snapshot.events.map((event) => <li key={event.id}>
+          <strong>{copy.eventLabel(event.hookEventName)}</strong>
+          <time dateTime={event.occurredAt}>{formatObservedAt(event.occurredAt, language)}</time>
+        </li>)}
+      </ol>}
+    </section>
+    <footer>Session Lens 0.1.1-l0 · {snapshot.collectionEnabled || snapshot.events.length > 0 ? copy.footerBoundMetadata : copy.footerBound}</footer>
   </main>;
 
   if (snapshot.mode === 'host-unbound') {
@@ -88,7 +120,7 @@ export function SessionLensView({ snapshot, status, revision, busy, refresh, adv
         <p className="muted">{copy.noEstimate}</p>
       </section>
       <section aria-label={copy.collectionStatus}><h2>{copy.collectionStatus}</h2><p>{copy.noEventsCollected}</p></section>
-      <footer>Session Lens 0.1.0-l0 · {copy.footerUnbound}</footer>
+      <footer>Session Lens 0.1.1-l0 · {copy.footerUnbound}</footer>
     </main>;
   }
 
@@ -121,6 +153,6 @@ export function SessionLensView({ snapshot, status, revision, busy, refresh, adv
         <p className="muted">{copy.occurrenceTime} · {copy.causalLink}</p>
       </li>)}</ol>
     </section>
-    <footer>Session Lens 0.1.0-l0 · {copy.footerDemo}</footer>
+    <footer>Session Lens 0.1.1-l0 · {copy.footerDemo}</footer>
   </main>;
 }

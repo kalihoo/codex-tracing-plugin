@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import usageFixtures from '../tests/fixtures/app-server-usage.json';
 import { parseAppServerUsage } from './adapters';
-import { EventEnvelopeSchema, UsageObservationSchema, unknownUsage } from './contracts';
+import { EventEnvelopeSchema, LocalCaptureEventSchema, UsageObservationSchema, unknownUsage } from './contracts';
 
 export const DemoSessionIdSchema = z.enum(['fixture-alpha', 'fixture-beta']);
 export type DemoSessionId = z.infer<typeof DemoSessionIdSchema>;
@@ -22,8 +22,8 @@ const IdentityProbeSchema = z.strictObject({
 });
 export const HostBoundSnapshotSchema = z.strictObject({
   schemaVersion: z.literal(1), mode: z.literal('host-bound'),
-  sessionBinding: z.literal('codex-thread-id'), collectionEnabled: z.literal(false),
-  coverage: z.literal('unavailable'), events: z.tuple([]),
+  sessionBinding: z.literal('codex-thread-id'), collectionEnabled: z.boolean(), captureAvailable: z.boolean(),
+  coverage: z.literal('unavailable'), events: z.array(LocalCaptureEventSchema).max(10_000),
   identityProbe: IdentityProbeSchema.extend({ codexThreadIdPresent: z.literal(true) }),
 });
 export type HostBoundSnapshot = z.infer<typeof HostBoundSnapshotSchema>;

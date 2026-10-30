@@ -1,8 +1,10 @@
 import { SessionLensSnapshotSchema, type SessionLensSnapshot } from '../demo';
 
+type ToolArguments = Record<string, unknown>;
+
 export class DemoController {
   current: SessionLensSnapshot | null = null;
-  constructor(private readonly callTool: (name: string, sessionId: string) => Promise<unknown>) {}
+  constructor(private readonly callTool: (name: string, args: ToolArguments) => Promise<unknown>) {}
 
   receive(result: unknown): void {
     if (typeof result !== 'object' || result === null || !('structuredContent' in result)) throw new Error('Missing fixture snapshot');
@@ -16,17 +18,22 @@ export class DemoController {
   }
 
   async refresh(): Promise<void> {
-    if (this.current?.mode !== 'synthetic-fixture') throw new Error('No fixture session is open');
-    await this.request('read_demo');
+    if (this.current?.mode === 'synthetic-fixture') return this.request('read_demo', { sessionId: this.current.sessionId });
+    if (this.current?.mode === 'host-bound') return this.request('read_session', {});
+    throw new Error('No bound session is open');
   }
   async advance(): Promise<void> {
     if (this.current?.mode !== 'synthetic-fixture') throw new Error('No fixture session is open');
-    await this.request('advance_demo');
+    await this.request('advance_demo', { sessionId: this.current.sessionId });
   }
 
-  private async request(name: string): Promise<void> {
-    if (!this.current) throw new Error('Open an explicit fixture session first');
-    if (this.current?.mode !== 'synthetic-fixture') throw new Error('No fixture session is open');
-    this.receive(await this.callTool(name, this.current.sessionId));
+  async setCollection(enabled: boolean): Promise<void> {
+    if (this.current?.mode !== 'host-bound') throw new Error('No host-bound Codex session is open');
+    if (!this.current.captureAvailable) throw new Error('Local capture storage is unavailable');
+    await this.request('set_collection', { enabled });
+  }
+
+  private async request(name: string, args: ToolArguments): Promise<void> {
+    this.receive(await this.callTool(name, args));
   }
 }

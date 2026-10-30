@@ -1,13 +1,13 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "session-lens",
-  "version": "0.1.0-l0",
-  "description": "面向 Codex 的 Session Lens L0 本地演示；当前仅验证入口与合成数据，不采集真实会话。",
+  "version": "0.1.1-l0",
+  "description": "面向 Codex 的 Session Lens L0；采集需逐会话手动开启，当前仅记录本机事件元数据，不保存消息或工具内容。",
   "extensions": {
     "com.openai": {
       "requires_local_executor": true,
       "hooks": "./hooks/hooks.json",
-      "interface": { "displayName": "Session Lens（会话观察器 · L0）", "shortDescription": "查看 Codex 会话入口状态和合成数据；当前不采集真实会话内容" }
+      "interface": { "displayName": "Session Lens（会话观察器 · L0）", "shortDescription": "查看当前 Codex 线程；采集需手动开启，且仅记录事件元数据" }
     }
   }
 }

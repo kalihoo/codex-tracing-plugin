@@ -1,4 +1,5 @@
 export type Language = 'zh-CN' | 'en';
+import type { HookEventName } from '../contracts';
 
 export type StatusKey =
   | 'standalone-preview'
@@ -9,6 +10,8 @@ export type StatusKey =
   | 'invalid-snapshot'
   | 'host-unbound'
   | 'host-bound'
+  | 'host-capture-on'
+  | 'host-capture-off'
   | 'demo-ready'
   | 'bridge-unavailable'
   | 'ready';
@@ -20,6 +23,8 @@ export type Copy = {
   demoEyebrow: string;
   waitingNotice: string;
   boundNotice: string;
+  boundNoticeCollectionOn: string;
+  boundNoticeDataUnavailable: string;
   unboundNoticeWithMetadata: string;
   unboundNoticeWithoutMetadata: string;
   demoNotice: string;
@@ -41,6 +46,17 @@ export type Copy = {
   noLifecycleEvents: string;
   noHostCapture: string;
   noEventsCollected: string;
+  localCaptureExplanation: string;
+  captureBindingUnverified: string;
+  capturePauseNote: string;
+  captureStorageUnavailable: string;
+  captureEnabled: string;
+  capturePaused: string;
+  enableCapture: string;
+  pauseCapture: string;
+  refreshEvents: string;
+  noObservedEvents: string;
+  eventLabel: (eventName: HookEventName) => string;
   inputTokens: string;
   outputTokens: string;
   totalTokens: string;
@@ -70,6 +86,7 @@ export type Copy = {
   identityListSeparator: string;
   footerNoCapture: string;
   footerBound: string;
+  footerBoundMetadata: string;
   footerUnbound: string;
   footerDemo: string;
   status: Record<StatusKey, string>;
@@ -83,6 +100,8 @@ export const messages: Record<Language, Copy> = {
     demoEyebrow: 'L0 · 合成数据示例',
     waitingNotice: '未采集 · 等待宿主连接',
     boundNotice: '已识别线程 · 采集关闭',
+    boundNoticeCollectionOn: '已识别线程 · 本地元数据采集中',
+    boundNoticeDataUnavailable: '已识别线程 · 本地存储不可用',
     unboundNoticeWithMetadata: '未采集 · 身份信息未验证',
     unboundNoticeWithoutMetadata: '未采集 · 未检测到宿主标识',
     demoNotice: '宿主能力待验证 · 采集已关闭',
@@ -96,14 +115,30 @@ export const messages: Record<Language, Copy> = {
     waitingTitle: '等待 Codex 宿主响应',
     waitingDescription: '尚未收到会话绑定或事件快照。当前没有读取或保存会话内容。',
     boundTitle: '已识别当前 Codex 会话',
-    boundDescription: 'Codex App Server 已提供当前会话标识。Session Lens 不显示或保存线程 ID。',
+    boundDescription: 'Codex App Server 提供当前线程标识用于绑定。本地保存派生的 SHA-256 隔离键；原始线程 ID 不落盘。',
     unboundTitle: '未绑定当前会话',
     detectedIdentity: (labels) => `检测到${labels}身份类 metadata 键名；尚未验证它们能否绑定当前会话。`,
     missingIdentity: '未检测到名称对应线程、对话或会话标识的 metadata 键。',
     transportIdExplanation: 'MCP 传输 session ID 仅用于传输，不代表 Codex 对话标识。',
-    noLifecycleEvents: '本版本尚未连接生命周期事件流，不会读取或保存对话内容。绑定诊断会检查身份 metadata 类别；原始键名与标识值不会在界面展示或持久化。',
-    noHostCapture: '线程上下文已识别，生命周期采集尚未接入；未采集事件。',
-    noEventsCollected: '尚未采集任何事件。Hooks 尚未获信任，内容采集保持关闭。',
+    noLifecycleEvents: '当前未绑定到具体会话，因此不会读取或保存会话事件及对话内容。绑定诊断会检查身份 metadata 类别；原始键名与标识值不会在界面展示或持久化。',
+    noHostCapture: '当前只记录事件名称与时间；消息、工具输入输出和 Token 未采集。',
+    noEventsCollected: '尚未采集任何事件。采集只在侧栏手动开启后记录新的事件元数据。',
+    localCaptureExplanation: '启用后仅在本机记录事件名称和时间，并保存派生的 SHA-256 隔离键；原始会话 ID、消息、工具输入输出和 Token 不落盘。',
+    captureBindingUnverified: '插件无法验证 Codex 是否已信任并运行该 hook，也无法确认 hook 的 session_id 是否对应侧栏线程；没有记录不代表没有事件发生。',
+    capturePauseNote: '暂停会阻止后续 hook 开始记录；已经开始的异步事件写入仍可能完成。',
+    captureStorageUnavailable: '插件本地数据目录不可用，无法启用事件记录。',
+    captureEnabled: '当前会话的事件元数据采集已开启。',
+    capturePaused: '当前会话采集已暂停。已有本地事件仍保留。',
+    enableCapture: '开启本地事件记录',
+    pauseCapture: '暂停记录',
+    refreshEvents: '刷新事件',
+    noObservedEvents: '暂无事件。开启记录后发送一条新消息，再刷新查看。',
+    eventLabel: (eventName) => ({
+      SessionStart: '会话开始', SessionEnd: '会话结束', UserPromptSubmit: '用户提交消息',
+      PreToolUse: '工具调用开始', PostToolUse: '工具调用结束', PermissionRequest: '权限请求',
+      SubagentStart: '子代理开始', SubagentStop: '子代理结束', Stop: '轮次结束',
+      Interrupt: '执行中断', PreCompact: '上下文压缩前', PostCompact: '上下文压缩后',
+    }[eventName]),
     inputTokens: '输入 Token',
     outputTokens: '输出 Token',
     totalTokens: '总 Token',
@@ -136,6 +171,7 @@ export const messages: Record<Language, Copy> = {
     identityListSeparator: '、',
     footerNoCapture: '未采集会话内容',
     footerBound: '已绑定宿主上下文 · 未采集会话内容',
+    footerBoundMetadata: '已绑定宿主上下文 · 仅记录事件元数据',
     footerUnbound: '未绑定宿主 · 未采集会话内容',
     footerDemo: '本地协议演示 · 宿主验收未通过',
     status: {
@@ -147,6 +183,8 @@ export const messages: Record<Language, Copy> = {
       'invalid-snapshot': '已拒绝无效或不匹配的示例快照。',
       'host-unbound': '侧栏已打开 · 无法验证会话身份 · 采集关闭',
       'host-bound': '已识别 Codex 会话 · 采集关闭',
+      'host-capture-on': '本地事件元数据采集中 · 内容与 Token 未采集',
+      'host-capture-off': '已识别 Codex 会话 · 采集关闭',
       'demo-ready': '合成示例已就绪 · 宿主能力待验证',
       'bridge-unavailable': 'MCP Apps 桥接不可用，宿主验收仍未通过。',
       ready: '已就绪',
@@ -159,6 +197,8 @@ export const messages: Record<Language, Copy> = {
     demoEyebrow: 'L0 · Synthetic data preview',
     waitingNotice: 'Collection off · waiting for host',
     boundNotice: 'Thread recognized · collection off',
+    boundNoticeCollectionOn: 'Thread recognized · local metadata capture on',
+    boundNoticeDataUnavailable: 'Thread recognized · local storage unavailable',
     unboundNoticeWithMetadata: 'Collection off · identity unverified',
     unboundNoticeWithoutMetadata: 'Collection off · host identity unavailable',
     demoNotice: 'Host gates unverified · collection off',
@@ -172,14 +212,30 @@ export const messages: Record<Language, Copy> = {
     waitingTitle: 'Waiting for Codex host response',
     waitingDescription: 'No session binding or event snapshot has arrived. Session content has not been read or saved.',
     boundTitle: 'Current Codex thread recognized',
-    boundDescription: 'Codex App Server provided the current conversation identity. Session Lens does not display or save the thread ID.',
+    boundDescription: 'Codex App Server provides the current thread identity for binding. A derived SHA-256 isolation key is stored locally; the raw thread ID is not.',
     unboundTitle: 'Not bound to the current conversation',
     detectedIdentity: (labels) => `Detected metadata key names related to ${labels}; their ability to bind this conversation is unverified.`,
     missingIdentity: 'No metadata key name matching a thread, conversation, or session identifier was detected.',
     transportIdExplanation: 'The MCP transport session ID is for transport only; it does not identify a Codex conversation.',
-    noLifecycleEvents: 'This version is not connected to lifecycle events, so it does not read or save chat content. Session-binding diagnostics inspect identity metadata categories; raw key names and identifier values are not displayed or persisted.',
-    noHostCapture: 'Thread context is recognized, but lifecycle capture is not connected; no events were collected.',
-    noEventsCollected: 'No events have been collected. Hooks are not trusted, and content collection remains off.',
+    noLifecycleEvents: 'This view is not bound to a specific conversation, so it does not read or save conversation events or content. Session-binding diagnostics inspect identity metadata categories; raw key names and identifier values are not displayed or persisted.',
+    noHostCapture: 'Only event names and timestamps are recorded; messages, tool inputs/outputs, and tokens are not collected.',
+    noEventsCollected: 'No events have been collected. New event metadata is recorded only after capture is enabled in the sidebar.',
+    localCaptureExplanation: 'When enabled, only event names, timestamps, and a derived SHA-256 isolation key are stored locally. The raw session ID, messages, tool inputs/outputs, and tokens are not saved.',
+    captureBindingUnverified: 'Session Lens cannot verify whether Codex trusted and ran this hook or whether its session_id matches the sidebar thread; no records do not prove no event occurred.',
+    capturePauseNote: 'Pausing stops later hooks from starting capture; an asynchronous event write already in progress may still finish.',
+    captureStorageUnavailable: 'The plugin local data directory is unavailable, so event recording cannot be enabled.',
+    captureEnabled: 'Local event metadata capture is enabled for this thread.',
+    capturePaused: 'Capture is paused for this thread. Existing local events are retained.',
+    enableCapture: 'Enable local event capture',
+    pauseCapture: 'Pause capture',
+    refreshEvents: 'Refresh events',
+    noObservedEvents: 'No events yet. Enable capture, send a new message, then refresh.',
+    eventLabel: (eventName) => ({
+      SessionStart: 'Session started', SessionEnd: 'Session ended', UserPromptSubmit: 'User message submitted',
+      PreToolUse: 'Tool call started', PostToolUse: 'Tool call finished', PermissionRequest: 'Permission requested',
+      SubagentStart: 'Subagent started', SubagentStop: 'Subagent stopped', Stop: 'Turn finished',
+      Interrupt: 'Interrupted', PreCompact: 'Before compaction', PostCompact: 'After compaction',
+    }[eventName]),
     inputTokens: 'Input tokens',
     outputTokens: 'Output tokens',
     totalTokens: 'Total tokens',
@@ -209,6 +265,7 @@ export const messages: Record<Language, Copy> = {
     identityListSeparator: ', ',
     footerNoCapture: 'No session data captured',
     footerBound: 'Bound to host context · No session data captured',
+    footerBoundMetadata: 'Bound to host context · Event metadata only',
     footerUnbound: 'Not bound to host · No session data captured',
     footerDemo: 'Local protocol demo · Host gate blocked',
     status: {
@@ -220,6 +277,8 @@ export const messages: Record<Language, Copy> = {
       'invalid-snapshot': 'Rejected invalid or mismatched fixture snapshot.',
       'host-unbound': 'Sidebar opened · session identity unavailable · collection off',
       'host-bound': 'Codex conversation context recognized · collection off',
+      'host-capture-on': 'Local event metadata capture on · no content or tokens captured',
+      'host-capture-off': 'Codex conversation context recognized · collection off',
       'demo-ready': 'Synthetic fixture ready · host gates unverified',
       'bridge-unavailable': 'MCP Apps bridge unavailable. Host gate remains blocked.',
       ready: 'Ready',

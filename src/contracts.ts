@@ -2,6 +2,12 @@ import { z } from 'zod';
 
 export const CODEX_SOURCE_VERSION = '0.162.0-alpha.17.2';
 export const SessionIdSchema = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/);
+export const HookEventNameSchema = z.enum(['SessionStart', 'SessionEnd', 'UserPromptSubmit', 'PreToolUse', 'PostToolUse',
+  'PermissionRequest', 'SubagentStart', 'SubagentStop', 'Stop', 'Interrupt', 'PreCompact', 'PostCompact']);
+export type HookEventName = z.infer<typeof HookEventNameSchema>;
+export const LocalCaptureEventSchema = z.strictObject({
+  id: z.uuid(), hookEventName: HookEventNameSchema, occurredAt: z.iso.datetime(),
+});
 const count = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER);
 export const TokenCountersSchema = z.strictObject({
   totalTokens: count, inputTokens: count, cachedInputTokens: count,

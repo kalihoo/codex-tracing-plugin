@@ -24,11 +24,12 @@ describe('real MCP protocol, synthetic data', () => {
     const open = tools.find((item) => item.name === 'open_session');
     const demo = tools.find((item) => item.name === 'open_demo');
     expect(open?.title).toContain('在当前对话中打开');
-    expect(open?.description).toContain('不会读取或采集');
+    expect(open?.description).toContain('默认不采集');
+    expect(tools.find((item) => item.name === 'set_collection')?.description).toContain('不保存原始会话 ID');
     expect(demo?.title).toContain('合成数据示例');
     expect(demo?.description).toContain('不会绑定或采集');
     const result = await client.callTool({ name: 'open_session', arguments: {} });
-    expect(JSON.stringify(result.content)).toContain('原始 metadata 键名与标识值不会返回或保存');
+    expect(JSON.stringify(result.content)).toContain('原始 metadata 不会返回或保存');
   });
 
   it('advertises a Codex thread-side-panel entrypoint with an explicit unbound state', async () => {
@@ -63,7 +64,7 @@ describe('real MCP protocol, synthetic data', () => {
     const client = await connect();
     const result = await client.callTool({ name: 'open_session', arguments: {}, _meta: { threadId: 'synthetic-private-id' } });
     expect(result.structuredContent).toMatchObject({
-      mode: 'host-bound', sessionBinding: 'codex-thread-id', collectionEnabled: false,
+      mode: 'host-bound', sessionBinding: 'codex-thread-id', collectionEnabled: false, captureAvailable: false,
       identityProbe: { codexThreadIdPresent: true, identityMetadataKinds: ['thread'] },
     });
     expect(JSON.stringify(result)).not.toContain('synthetic-private-id');
@@ -86,10 +87,10 @@ describe('real MCP protocol, synthetic data', () => {
     expect(DemoSnapshotSchema.parse(a?.structuredContent)).toMatchObject({ revision: 1, usage: { counters: { totalTokens: 2500 } } });
     expect(DemoSnapshotSchema.parse(b?.structuredContent)).toMatchObject({ revision: 0, usage: { status: 'unknown' } });
   });
-  it('refuses host session identifiers and does not expose a collector', async () => {
+  it('refuses synthetic fixture access with host identifiers while exposing bounded host tools', async () => {
     const client = await connect();
     const result = await client.callTool({ name: 'open_demo', arguments: { sessionId: 'real-session' } });
     expect(result.isError).toBe(true);
-    expect((await client.listTools()).tools.map((tool) => tool.name).sort()).toEqual(['advance_demo', 'open_demo', 'open_session', 'read_demo']);
+    expect((await client.listTools()).tools.map((tool) => tool.name).sort()).toEqual(['advance_demo', 'open_demo', 'open_session', 'read_demo', 'read_session', 'set_collection']);
   });
 });

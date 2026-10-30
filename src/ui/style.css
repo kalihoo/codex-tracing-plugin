@@ -15,6 +15,8 @@ p { line-height: 1.55; margin: 8px 0; }
 .notice { border-left: 3px solid #a37618; padding-left: 10px; font-size: 12px; }
 section { padding: 18px 0; border-top: 1px solid #8993a34d; }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.section-heading h2 { margin-bottom: 0; }
 button { font: inherit; border: 1px solid #8993a3; border-radius: 6px; padding: 9px 12px; background: transparent; color: inherit; cursor: pointer; }
 button:focus-visible { outline: 3px solid #7e84ed; outline-offset: 3px; }
 button:disabled { opacity: .5; cursor: default; }

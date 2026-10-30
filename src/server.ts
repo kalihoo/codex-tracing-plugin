@@ -1,11 +1,16 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { registerAppResource, registerAppTool, RESOURCE_MIME_TYPE } from '@modelcontextprotocol/ext-apps/server';
 import { DemoSessionIdSchema, DemoStore, HostBoundSnapshotSchema, HostUnboundSnapshotSchema, type DemoSnapshot, type HostBoundSnapshot, type HostUnboundSnapshot } from './demo';
+import { LocalEventStore } from './collector';
+import { z } from 'zod';
 
 export const UI_URI = 'ui://session-lens/l0-v1.html';
-export function createServer(html: string): McpServer {
-  const server = new McpServer({ name: 'session-lens', version: '0.1.0-l0' });
+export type ServerOptions = { dataRoot?: string | undefined };
+export function createServer(html: string, options: ServerOptions = {}): McpServer {
+  const server = new McpServer({ name: 'session-lens', version: '0.1.1-l0' });
   const store = new DemoStore();
+  const dataRoot = options.dataRoot ?? process.env.PLUGIN_DATA;
+  const eventStore = dataRoot ? new LocalEventStore(dataRoot) : null;
   const result = (snapshot: DemoSnapshot) => ({
     content: [{ type: 'text' as const, text: `合成示例会话 ${snapshot.sessionId}；版本 ${snapshot.revision}；采集已关闭；Codex 宿主能力尚未验证。` }],
     structuredContent: { ...snapshot },
@@ -16,37 +21,33 @@ export function createServer(html: string): McpServer {
   }));
   registerAppTool(server, 'open_session', {
     title: '在当前对话中打开 Session Lens',
-    description: '在 Codex 当前对话的侧栏中打开本地 Session Lens。此 L0 原型仅显示宿主绑定状态；不会读取或采集对话内容、生命周期事件或 Token 用量。',
+    description: '在 Codex 当前对话的侧栏中打开本地 Session Lens。默认不采集；用户可选择记录本机生命周期事件名称、时间及派生的 SHA-256 隔离键，不保存原始会话 ID、消息、工具输入输出或 Token。',
     inputSchema: {},
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     _meta: {
       ui: { resourceUri: UI_URI },
       'openai/ui': { entrypoints: [{ type: 'thread' }] },
     },
-  }, async (_args, extra) => {
-    const metadataKeys = Object.keys(extra._meta ?? {});
-    const identityMetadataKinds = (['thread', 'conversation', 'session'] as const).filter((kind) =>
-      metadataKeys.some((key) => new RegExp(`(?:${kind}).*?(?:id|identifier)|(?:id|identifier).*?(?:${kind})`, 'i').test(key)));
-    const mcpTransportSessionIdPresent = typeof extra.sessionId === 'string' && extra.sessionId.length > 0;
-    const codexThreadIdPresent = typeof extra._meta?.threadId === 'string' && extra._meta.threadId.trim().length > 0;
-    const identityProbe = { mcpTransportSessionIdPresent, identityMetadataKinds };
-    const snapshot: HostBoundSnapshot | HostUnboundSnapshot = codexThreadIdPresent
-      ? HostBoundSnapshotSchema.parse({
-        schemaVersion: 1, mode: 'host-bound', sessionBinding: 'codex-thread-id',
-        collectionEnabled: false, coverage: 'unavailable', events: [],
-        identityProbe: { ...identityProbe, codexThreadIdPresent: true },
-      })
-      : HostUnboundSnapshotSchema.parse({
-        schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable',
-        collectionEnabled: false, coverage: 'unavailable', events: [],
-        identityProbe: { ...identityProbe, codexThreadIdPresent: false },
-      });
-    return {
-      content: [{ type: 'text' as const, text: codexThreadIdPresent
-        ? 'Session Lens 已识别 Codex 当前会话上下文。线程 ID 不会返回；采集保持关闭。'
-        : 'Session Lens 未检测到 Codex 会话标识。仅返回身份类别和布尔状态；原始 metadata 键名与标识值不会返回或保存，采集保持关闭。' }],
-      structuredContent: snapshot,
-    };
+  }, async (_args, extra) => hostResult(await hostSnapshot(extra)));
+  registerAppTool(server, 'read_session', {
+    title: '刷新当前会话事件',
+    description: '读取当前 Codex 线程的本地生命周期事件元数据；不读取消息或工具输入输出。',
+    inputSchema: {},
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    _meta: { ui: { visibility: ['app'] } },
+  }, async (_args, extra) => hostResult(await hostSnapshot(extra)));
+  registerAppTool(server, 'set_collection', {
+    title: '设置当前会话采集',
+    description: '仅为当前 Codex 线程开启或暂停本地事件元数据采集。L0 保存事件名称、观察时间及派生的 SHA-256 隔离键；不保存原始会话 ID、消息内容、工具输入输出或 Token。',
+    inputSchema: { enabled: z.boolean() },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    _meta: { ui: { visibility: ['app'] } },
+  }, async ({ enabled }, extra) => {
+    const threadId = codexThreadId(extra);
+    if (!threadId) return hostResult(await hostSnapshot(extra));
+    if (!eventStore) return hostResult(await hostSnapshot(extra));
+    await eventStore.setEnabled(threadId, enabled);
+    return hostResult(await hostSnapshot(extra));
   });
   registerAppTool(server, 'open_demo', {
     title: '打开 Session Lens 合成数据示例',
@@ -68,4 +69,47 @@ export function createServer(html: string): McpServer {
     _meta: { ui: { visibility: ['app'] } },
   }, async ({ sessionId }) => result(store.advance(sessionId)));
   return server;
+
+  async function hostSnapshot(extra: { _meta?: Record<string, unknown> | undefined; sessionId?: string | undefined }): Promise<HostBoundSnapshot | HostUnboundSnapshot> {
+    const threadId = codexThreadId(extra);
+    const identityMetadataKinds = identityKinds(extra._meta);
+    const identityProbe = {
+      mcpTransportSessionIdPresent: typeof extra.sessionId === 'string' && extra.sessionId.length > 0,
+      identityMetadataKinds,
+    };
+    if (!threadId) return HostUnboundSnapshotSchema.parse({
+      schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable',
+      collectionEnabled: false, coverage: 'unavailable', events: [],
+      identityProbe: { ...identityProbe, codexThreadIdPresent: false },
+    });
+    const captured = await eventStore?.read(threadId);
+    return HostBoundSnapshotSchema.parse({
+      schemaVersion: 1, mode: 'host-bound', sessionBinding: 'codex-thread-id',
+      collectionEnabled: captured?.collectionEnabled ?? false, captureAvailable: Boolean(eventStore),
+      coverage: 'unavailable', events: captured?.events ?? [],
+      identityProbe: { ...identityProbe, codexThreadIdPresent: true },
+    });
+  }
+
+  function hostResult(snapshot: HostBoundSnapshot | HostUnboundSnapshot) {
+    const text = snapshot.mode === 'host-unbound'
+      ? 'Session Lens 未检测到可绑定的 Codex 线程。原始 metadata 不会返回或保存，采集保持关闭。'
+      : !snapshot.captureAvailable
+        ? '已识别当前 Codex 线程，但本地插件数据目录不可用。'
+        : snapshot.collectionEnabled
+          ? `已读取 ${snapshot.events.length} 条本地事件元数据；不含会话 ID 或内容。`
+          : '已识别当前 Codex 线程。采集默认关闭，尚未读取或保存会话内容。';
+    return { content: [{ type: 'text' as const, text }], structuredContent: snapshot };
+  }
+}
+
+function codexThreadId(extra: { _meta?: Record<string, unknown> | undefined }): string | null {
+  const value = extra._meta?.threadId;
+  return typeof value === 'string' && value.trim().length > 0 ? value : null;
+}
+
+function identityKinds(metadata: Record<string, unknown> | undefined): ('thread' | 'conversation' | 'session')[] {
+  const keys = Object.keys(metadata ?? {});
+  return (['thread', 'conversation', 'session'] as const).filter((kind) =>
+    keys.some((key) => new RegExp(`(?:${kind}).*?(?:id|identifier)|(?:id|identifier).*?(?:${kind})`, 'i').test(key)));
 }

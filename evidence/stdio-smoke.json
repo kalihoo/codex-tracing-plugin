@@ -1,10 +1,13 @@
 {
   "schemaVersion": 1,
   "status": "passed",
-  "scope": "local stdio MCP only",
+  "scope": "local stdio MCP plus a synthetic metadata-only hook payload",
   "bundledWithoutNodeModules": true,
   "sessions": 2,
   "isolated": true,
+  "explicitCaptureOptIn": true,
+  "hookPayloadContentPersisted": false,
+  "hookEventMetadataRefreshed": true,
   "codexThreadEntrypointAdvertised": true,
   "actualHostSessionBinding": false,
   "refreshEventCounts": [

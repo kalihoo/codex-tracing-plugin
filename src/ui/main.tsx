@@ -7,12 +7,15 @@ import { SessionLensView } from './view';
 import './style.css';
 
 const root = createRoot(document.getElementById('root')!);
-const app = new App({ name: 'Session Lens L0', version: '0.1.0-l0' }, {});
+const app = new App({ name: 'Session Lens L0', version: '0.1.1-l0' }, {});
 const preview = window.parent === window;
 const previewStore = preview ? new DemoStore() : null;
-const controller = new DemoController(async (name, sessionId) => {
-  if (previewStore) return { structuredContent: name === 'advance_demo' ? previewStore.advance(sessionId) : previewStore.read(sessionId) };
-  return app.callServerTool({ name, arguments: { sessionId } });
+const controller = new DemoController(async (name, args) => {
+  if (previewStore) {
+    const sessionId = String(args.sessionId);
+    return { structuredContent: name === 'advance_demo' ? previewStore.advance(sessionId) : previewStore.read(sessionId) };
+  }
+  return app.callServerTool({ name, arguments: args });
 });
 let busy = false;
 let language: Language = 'zh-CN';
@@ -22,7 +25,13 @@ function render() {
   document.documentElement.lang = language;
   root.render(<SessionLensView snapshot={controller.current} status={status} revision={revision} language={language}
     onLanguageChange={(next) => { language = next; render(); }} busy={busy}
-    refresh={() => { void run('refresh'); }} advance={() => { void run('advance'); }} />);
+    refresh={() => { void run('refresh'); }} advance={() => { void run('advance'); }}
+    setCollection={(enabled) => { void updateCapture(enabled); }} />);
+}
+function hostStatus(): StatusKey {
+  if (controller.current?.mode === 'host-unbound') return 'host-unbound';
+  if (controller.current?.mode === 'host-bound') return controller.current.collectionEnabled ? 'host-capture-on' : 'host-capture-off';
+  return 'fixture-revision';
 }
 async function run(action: 'refresh' | 'advance') {
   if (busy) return;
@@ -32,18 +41,25 @@ async function run(action: 'refresh' | 'advance') {
   try {
     await controller[action]();
     revision = controller.current?.mode === 'synthetic-fixture' ? controller.current.revision : undefined;
-    status = 'fixture-revision';
+    status = hostStatus();
+  } catch { status = 'refresh-unavailable'; }
+  finally { busy = false; render(); }
+}
+async function updateCapture(enabled: boolean) {
+  if (busy) return;
+  busy = true;
+  status = 'refreshing';
+  render();
+  try {
+    await controller.setCollection(enabled);
+    status = hostStatus();
   } catch { status = 'refresh-unavailable'; }
   finally { busy = false; render(); }
 }
 app.ontoolresult = (result) => {
   try {
     controller.receive(result);
-    status = controller.current?.mode === 'host-unbound'
-      ? 'host-unbound'
-      : controller.current?.mode === 'host-bound'
-        ? 'host-bound'
-        : 'demo-ready';
+    status = controller.current?.mode === 'synthetic-fixture' ? 'demo-ready' : hostStatus();
   }
   catch { status = 'invalid-snapshot'; }
   render();
