@@ -58,7 +58,7 @@ export function SessionLensView({ snapshot, status, revision, busy, refresh, adv
       <h2>{copy.tokenUsageTitle}</h2>
       <dl><div><dt>{copy.inputTokens}</dt><dd>{copy.unavailable}</dd></div><div><dt>{copy.outputTokens}</dt><dd>{copy.unavailable}</dd></div><div><dt>{copy.source}</dt><dd>{copy.notConnected}</dd></div></dl>
     </section>
-    <footer>Session Lens 0.1.1-l0 · {copy.footerNoCapture}</footer>
+    <footer>Session Lens 0.1.3-l0 · {copy.footerNoCapture}</footer>
   </main>;
 
   if (snapshot.mode === 'host-bound') return <main lang={language}>
@@ -97,7 +97,7 @@ export function SessionLensView({ snapshot, status, revision, busy, refresh, adv
         </li>)}
       </ol>}
     </section>
-    <footer>Session Lens 0.1.1-l0 · {snapshot.collectionEnabled || snapshot.events.length > 0 ? copy.footerBoundMetadata : copy.footerBound}</footer>
+      <footer>Session Lens 0.1.3-l0 · {snapshot.collectionEnabled || snapshot.events.length > 0 ? copy.footerBoundMetadata : copy.footerBound}</footer>
   </main>;
 
   if (snapshot.mode === 'host-unbound') {
@@ -120,7 +120,7 @@ export function SessionLensView({ snapshot, status, revision, busy, refresh, adv
         <p className="muted">{copy.noEstimate}</p>
       </section>
       <section aria-label={copy.collectionStatus}><h2>{copy.collectionStatus}</h2><p>{copy.noEventsCollected}</p></section>
-      <footer>Session Lens 0.1.1-l0 · {copy.footerUnbound}</footer>
+      <footer>Session Lens 0.1.3-l0 · {copy.footerUnbound}</footer>
     </main>;
   }
 
@@ -153,6 +153,6 @@ export function SessionLensView({ snapshot, status, revision, busy, refresh, adv
         <p className="muted">{copy.occurrenceTime} · {copy.causalLink}</p>
       </li>)}</ol>
     </section>
-    <footer>Session Lens 0.1.1-l0 · {copy.footerDemo}</footer>
+      <footer>Session Lens 0.1.3-l0 · {copy.footerDemo}</footer>
   </main>;
 }

@@ -3,7 +3,6 @@ import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/pr
 import { join, resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { spawnSync } from 'node:child_process';
 
 await mkdir('work', { recursive: true });
 const directory = await mkdtemp(resolve('work/isolated-stdio-'));
@@ -21,7 +20,7 @@ try {
   transport.stderr?.on('data', (chunk) => { stderr += String(chunk); });
   await client.connect(transport);
   const tools = await client.listTools();
-  assert.deepEqual(tools.tools.map((tool) => tool.name).sort(), ['advance_demo', 'open_demo', 'open_session', 'read_demo', 'read_session', 'set_collection']);
+  assert.deepEqual(tools.tools.map((tool) => tool.name).sort(), ['advance_demo', 'open_demo', 'open_session', 'read_demo', 'read_session', 'record_prompt_submit', 'set_collection']);
   const entrypoint = tools.tools.find((tool) => tool.name === 'open_session');
   assert.deepEqual(entrypoint?._meta?.['openai/ui']?.entrypoints, [{ type: 'thread' }]);
   const host = await client.callTool({ name: 'open_session', arguments: {} });
@@ -35,13 +34,8 @@ try {
     identityProbe: { mcpTransportSessionIdPresent: false, identityMetadataKinds: ['thread'], codexThreadIdPresent: true } });
   const enabled = await client.callTool({ name: 'set_collection', arguments: { enabled: true }, _meta: alphaMeta });
   assert.equal(enabled.structuredContent.collectionEnabled, true);
-  const hook = spawnSync(process.execPath, [resolve(directory, 'capture-hook.mjs')], {
-    input: JSON.stringify({ session_id: 'smoke-thread-alpha', hook_event_name: 'UserPromptSubmit', prompt: 'private prompt' }),
-    encoding: 'utf8', env: { PATH: '/usr/bin:/bin', PLUGIN_DATA: pluginData }, timeout: 5000,
-  });
-  assert.equal(hook.status, 0);
-  assert.equal(hook.stdout, '');
-  assert.equal(hook.stderr, '');
+  const hook = await client.callTool({ name: 'record_prompt_submit', arguments: {}, _meta: alphaMeta });
+  assert.equal(hook.isError, undefined);
   const refreshed = await client.callTool({ name: 'read_session', arguments: {}, _meta: alphaMeta });
   assert.equal(refreshed.structuredContent.events.length, 1);
   assert.equal(refreshed.structuredContent.events[0].hookEventName, 'UserPromptSubmit');
@@ -75,7 +69,7 @@ try {
   assert.doesNotMatch(html, /<(?:script|link|img)[^>]*(?:src|href)=["']https?:/);
   await mkdir('work/preview', { recursive: true });
   await writeFile('work/preview/index.html', html);
-  const report = { schemaVersion: 1, status: 'passed', scope: 'local stdio MCP plus a synthetic metadata-only hook payload',
+  const report = { schemaVersion: 1, status: 'passed', scope: 'local stdio MCP plus a synthetic host-bound lifecycle hook call',
     bundledWithoutNodeModules: true, sessions: 2, isolated: true, explicitCaptureOptIn: true,
     hookPayloadContentPersisted: false, hookEventMetadataRefreshed: true,
     codexThreadEntrypointAdvertised: true, actualHostSessionBinding: false,

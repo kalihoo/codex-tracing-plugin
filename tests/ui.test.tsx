@@ -106,8 +106,8 @@ describe('fixture UI', () => {
     const html = renderToStaticMarkup(<SessionLensView snapshot={controller.current} status="host-bound" busy={false} refresh={() => {}} advance={() => {}} />);
     expect(html).toContain('已识别当前 Codex 会话');
     expect(html).toContain('采集关闭');
-    expect(html).toContain('无法确认 hook 的 session_id 是否对应侧栏线程');
-    expect(html).toContain('已经开始的异步事件写入仍可能完成');
+    expect(html).toContain('无法确认 hook 调用是否携带当前线程绑定');
+    expect(html).toContain('已经启动的本地事件写入仍可能完成');
     expect(html).not.toContain('synthetic-private-id');
     expect(html).not.toContain('threadId');
   });
@@ -132,8 +132,8 @@ describe('fixture UI', () => {
   it('explains unverified hook delivery and in-flight pause behavior in English', () => {
     const snapshot = SessionLensSnapshotSchema.parse({ schemaVersion: 1, mode: 'host-bound', sessionBinding: 'codex-thread-id', collectionEnabled: true, captureAvailable: true, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: false, codexThreadIdPresent: true, identityMetadataKinds: ['thread'] } });
     const html = renderToStaticMarkup(<SessionLensView snapshot={snapshot} status="host-capture-on" busy={false} refresh={() => {}} advance={() => {}} language="en" />);
-    expect(html).toContain('Session Lens cannot verify whether Codex trusted and ran this hook');
-    expect(html).toContain('an asynchronous event write already in progress may still finish');
+    expect(html).toContain('Session Lens cannot verify whether Codex trusted and invoked this hook');
+    expect(html).toContain('an in-progress local event write may still finish');
   });
   it('escapes malicious content and renders unavailable usage explicitly', () => {
     const snapshot = new DemoStore().read('fixture-beta');

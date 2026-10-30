@@ -7,7 +7,7 @@ import { z } from 'zod';
 export const UI_URI = 'ui://session-lens/l0-v1.html';
 export type ServerOptions = { dataRoot?: string | undefined };
 export function createServer(html: string, options: ServerOptions = {}): McpServer {
-  const server = new McpServer({ name: 'session-lens', version: '0.1.1-l0' });
+  const server = new McpServer({ name: 'session-lens', version: '0.1.3-l0' });
   const store = new DemoStore();
   const dataRoot = options.dataRoot ?? process.env.PLUGIN_DATA;
   const eventStore = dataRoot ? new LocalEventStore(dataRoot) : null;
@@ -36,6 +36,18 @@ export function createServer(html: string, options: ServerOptions = {}): McpServ
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     _meta: { ui: { visibility: ['app'] } },
   }, async (_args, extra) => hostResult(await hostSnapshot(extra)));
+  registerAppTool(server, 'record_prompt_submit', {
+    title: '记录当前会话事件',
+    description: '由 Codex UserPromptSubmit hook 调用；只记事件名和时间，线程绑定取自宿主注入的 threadId，不接收提示词内容，也不向模型返回额外文本。',
+    inputSchema: {},
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    _meta: { ui: { visibility: ['app'] } },
+  }, async (_args, extra) => {
+    const threadId = codexThreadId(extra);
+    if (!threadId || !eventStore) return { content: [] };
+    await eventStore.recordPromptSubmit(threadId);
+    return { content: [] };
+  });
   registerAppTool(server, 'set_collection', {
     title: '设置当前会话采集',
     description: '仅为当前 Codex 线程开启或暂停本地事件元数据采集。L0 保存事件名称、观察时间及派生的 SHA-256 隔离键；不保存原始会话 ID、消息内容、工具输入输出或 Token。',

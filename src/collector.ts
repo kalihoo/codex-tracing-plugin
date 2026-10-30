@@ -44,7 +44,17 @@ export class LocalEventStore {
   async captureHookEvent(input: unknown): Promise<boolean> {
     const parsed = HookPayloadSchema.safeParse(input);
     if (!parsed.success) return false;
-    const sessionKey = sessionKeyFor(parsed.data.session_id);
+    return this.captureForBoundSession(parsed.data.session_id, parsed.data.hook_event_name);
+  }
+
+  /** Records a lifecycle event under the Codex thread ID supplied by MCP call metadata. */
+  async recordPromptSubmit(threadId: string): Promise<boolean> {
+    if (threadId.length === 0 || threadId.length > 512) return false;
+    return this.captureForBoundSession(threadId, 'UserPromptSubmit');
+  }
+
+  private async captureForBoundSession(sessionId: string, hookEventName: z.infer<typeof HookEventNameSchema>): Promise<boolean> {
+    const sessionKey = sessionKeyFor(sessionId);
     const sessionPath = this.sessionPath(sessionKey);
     let state: z.infer<typeof CaptureStateSchema>;
     try { state = CaptureStateSchema.parse(JSON.parse(await readFile(join(sessionPath, 'capture.json'), 'utf8'))); }
@@ -53,7 +63,7 @@ export class LocalEventStore {
 
     const event = StoredEventSchema.parse({
       schemaVersion: 1, id: randomUUID(), sessionKey,
-      hookEventName: parsed.data.hook_event_name, occurredAt: new Date().toISOString(),
+      hookEventName, occurredAt: new Date().toISOString(),
     });
     const eventsPath = join(sessionPath, 'events');
     await mkdir(eventsPath, { recursive: true, mode: 0o700 });

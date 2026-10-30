@@ -1,5 +1,8 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createServer } from '../src/server';
 import { DemoSnapshotSchema } from '../src/demo';
@@ -7,8 +10,8 @@ import { DemoSnapshotSchema } from '../src/demo';
 const cleanups: (() => Promise<void>)[] = [];
 afterEach(async () => { await Promise.all(cleanups.splice(0).map((cleanup) => cleanup())); });
 
-async function connect() {
-  const server = createServer('<!doctype html><html><body>synthetic-ui</body></html>');
+async function connect(dataRoot?: string) {
+  const server = createServer('<!doctype html><html><body>synthetic-ui</body></html>', { dataRoot });
   const client = new Client({ name: 'synthetic-test-client', version: '1' }, {});
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await server.connect(serverTransport);
@@ -71,6 +74,29 @@ describe('real MCP protocol, synthetic data', () => {
     expect(JSON.stringify(result)).not.toContain('threadId');
   });
 
+  it('records lifecycle metadata through the host-bound MCP context and isolates opted-in threads', async () => {
+    const dataRoot = await mkdtemp(join(tmpdir(), 'session-lens-bound-hook-'));
+    cleanups.push(async () => { await rm(dataRoot, { recursive: true, force: true }); });
+    const client = await connect(dataRoot);
+
+    await client.callTool({ name: 'set_collection', arguments: { enabled: true }, _meta: { threadId: 'thread-alpha' } });
+    const recorded = await client.callTool({
+      name: 'record_prompt_submit', arguments: {}, _meta: { threadId: 'thread-alpha' },
+    });
+    const notOptedIn = await client.callTool({
+      name: 'record_prompt_submit', arguments: {}, _meta: { threadId: 'thread-beta' },
+    });
+
+    const alpha = await client.callTool({ name: 'read_session', arguments: {}, _meta: { threadId: 'thread-alpha' } });
+    const beta = await client.callTool({ name: 'read_session', arguments: {}, _meta: { threadId: 'thread-beta' } });
+    expect(recorded.isError).not.toBe(true);
+    expect(recorded.content).toEqual([]);
+    expect(notOptedIn.content).toEqual([]);
+    expect(alpha.structuredContent).toMatchObject({ collectionEnabled: true, events: [{ hookEventName: 'UserPromptSubmit' }] });
+    expect(beta.structuredContent).toMatchObject({ collectionEnabled: false, events: [] });
+    expect(JSON.stringify([recorded, alpha, beta])).not.toContain('thread-alpha');
+  });
+
   it('advertises a resource-linked tool and a self-contained MCP Apps resource', async () => {
     const client = await connect();
     const tools = await client.listTools();
@@ -91,6 +117,6 @@ describe('real MCP protocol, synthetic data', () => {
     const client = await connect();
     const result = await client.callTool({ name: 'open_demo', arguments: { sessionId: 'real-session' } });
     expect(result.isError).toBe(true);
-    expect((await client.listTools()).tools.map((tool) => tool.name).sort()).toEqual(['advance_demo', 'open_demo', 'open_session', 'read_demo', 'read_session', 'set_collection']);
+    expect((await client.listTools()).tools.map((tool) => tool.name).sort()).toEqual(['advance_demo', 'open_demo', 'open_session', 'read_demo', 'read_session', 'record_prompt_submit', 'set_collection']);
   });
 });

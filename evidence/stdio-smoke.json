@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "passed",
-  "scope": "local stdio MCP plus a synthetic metadata-only hook payload",
+  "scope": "local stdio MCP plus a synthetic host-bound lifecycle hook call",
   "bundledWithoutNodeModules": true,
   "sessions": 2,
   "isolated": true,

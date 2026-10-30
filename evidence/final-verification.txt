@@ -1,11 +1,20 @@
-$ pnpm package:local
-✓ TypeScript strict check
-✓ Vite UI, MCP server and lifecycle hook bundles
-✓ Vitest: 9 files, 60 tests passed
-✓ Bundled stdio MCP smoke without node_modules
-✓ Explicit opt-in synthetic hook event refreshed through read_session
-✓ Two synthetic sessions isolated; raw IDs and payload content absent from response and disk
-✓ Separate isolated ephemeral Codex CLI probe delivered a real UserPromptSubmit payload to the built hook entrypoint
-✓ Sanitized package created at session-lens-l0.tgz (workspace release 0.1.1-l0)
+Session Lens 0.1.3-l0 — local verification
+Checked: 2026-10-31
 
-Scope limit: the `pnpm smoke` hook payload was synthetic. The separate CLI probe used a temporary SessionStart opt-in bootstrap and does not verify plugin `PLUGIN_DATA` injection, hook session_id ↔ MCP threadId equality, desktop event isolation, or host token usage. The Codex CLI profile reports version 0.1.1-l0 installed/enabled; its changed plugin hook remains untrusted pending user review.
+Build and tests
+- `pnpm package:local` runs strict TypeScript checking, builds the UI and bundled MCP server, runs Vitest, exercises the bundled stdio MCP server without node_modules, and creates the sanitized local archive.
+- Expected current test result: 9 files, 61 tests passed.
+- The stdio smoke sends a synthetic host-bound lifecycle call, verifies opt-in, event refresh, and two-thread isolation, and confirms raw identifiers and payload content are absent from responses and disk.
+- This synthetic smoke is not evidence of a real Codex desktop hook invocation.
+
+Local plugin install
+- `codex plugin list --json` reports `session-lens@session-lens-local` version `0.1.3-l0`, installed and enabled from the sanitized package at `work/package/session-lens`.
+- The desktop app has not been independently confirmed to have reloaded this package. The user reports that `/hooks` showed no Session Lens entry or “not installed”; no new message had been sent after enabling collection, so no real event was expected yet.
+- The hook definition has not been reviewed/trusted in the desktop UI and its real invocation, injected thread metadata, and two-chat event isolation remain unverified.
+
+L0 limitations
+- No user message or tool input/output is captured or persisted.
+- Real desktop token usage has not reached Session Lens. Token counts remain unavailable; no text-based estimate is used.
+- Therefore L0 remains blocked and L1–L4 must not be treated as accepted.
+
+Relevant host contract: https://learn.chatgpt.com/docs/hooks. MCP tool hooks call an already-connected MCP server and require hook review/trust; this local test validates only the plugin-side implementation and synthetic protocol path.

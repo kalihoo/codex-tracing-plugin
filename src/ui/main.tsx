@@ -7,7 +7,7 @@ import { SessionLensView } from './view';
 import './style.css';
 
 const root = createRoot(document.getElementById('root')!);
-const app = new App({ name: 'Session Lens L0', version: '0.1.1-l0' }, {});
+  const app = new App({ name: 'Session Lens L0', version: '0.1.3-l0' }, {});
 const preview = window.parent === window;
 const previewStore = preview ? new DemoStore() : null;
 const controller = new DemoController(async (name, args) => {

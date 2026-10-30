@@ -14,8 +14,8 @@ describe('local-only plugin wiring', () => {
   });
 
   it('uses portable manifests and an explicit Codex compatibility layout', () => {
-    expect(json('plugin.json')).toMatchObject({ name: 'session-lens', extensions: { 'com.openai': { hooks: './hooks/hooks.json', requires_local_executor: true } } });
-    expect(json('.codex-plugin/plugin.json')).toMatchObject({ name: 'session-lens', mcpServers: './.mcp.json', hooks: './hooks/hooks.json' });
+    expect(json('plugin.json')).toMatchObject({ name: 'session-lens', version: '0.1.3-l0', extensions: { 'com.openai': { hooks: './hooks/hooks.json', requires_local_executor: true } } });
+    expect(json('.codex-plugin/plugin.json')).toMatchObject({ name: 'session-lens', version: '0.1.3-l0', mcpServers: './.mcp.json', hooks: './hooks/hooks.json' });
     expect(json('mcp.json')).toMatchObject({ mcpServers: { session_lens: { type: 'stdio', command: 'node', args: ['${PLUGIN_ROOT}/dist/server.mjs'], cwd: '${PLUGIN_ROOT}' } } });
     expect(json('.mcp.json').mcpServers).toEqual(json('mcp.json').mcpServers);
     expect(json('.agents/plugins/marketplace.json')).toMatchObject({ name: 'session-lens-local', plugins: [{ name: 'session-lens', source: { source: 'local', path: './work/package/session-lens' } }] });
@@ -28,9 +28,9 @@ describe('local-only plugin wiring', () => {
       expect(await readdir(temp)).toEqual([]);
     } finally { await rm(temp, { recursive: true, force: true }); }
   });
-  it('configures only the opt-in, asynchronous user-prompt metadata hook', () => {
+  it('routes the opt-in user-prompt hook through the host-bound MCP connection', () => {
     const hooks = json(join('hooks', 'hooks.json'));
-    expect(hooks).toMatchObject({ hooks: { UserPromptSubmit: [{ hooks: [{ type: 'command', command: 'node "${PLUGIN_ROOT}/dist/capture-hook.mjs"', async: true, timeout: 1 }] }] } });
+    expect(hooks.hooks).toEqual({ UserPromptSubmit: [{ hooks: [{ type: 'mcp_tool', server: 'session_lens', tool: 'record_prompt_submit', timeout: 5 }] }] });
     expect(Object.keys(hooks.hooks as object)).toEqual(['UserPromptSubmit']);
   });
 });
