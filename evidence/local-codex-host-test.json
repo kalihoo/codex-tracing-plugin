@@ -96,6 +96,20 @@
     "modelTurnsStarted": false,
     "userContentPersisted": false
   },
+  "postLocalizationRecheck": {
+    "source": "pnpm probe:host-isolation",
+    "installedPackage": "session-lens@session-lens-local 0.1.0-l0",
+    "status": "passed",
+    "ephemeralThreadsCreated": 2,
+    "distinctThreadContexts": true,
+    "callsRanConcurrently": true,
+    "bothResultsHostBound": true,
+    "collectionEnabled": false,
+    "eventCounts": [0, 0],
+    "rawThreadIdsReturnedOrPersisted": false,
+    "modelTurnStarted": false,
+    "userContentPersisted": false
+  },
   "collection": {
     "enabled": false,
     "userContentPersisted": false
