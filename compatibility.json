@@ -17,7 +17,7 @@
     "requirements": [
       {
         "id": "codex-mcp-app-side-panel", "status": "blocked",
-        "reason": "The plugin is installed and enabled from the local marketplace, and the Codex thread-entrypoint metadata is advertised. A Codex CLI MCP call succeeds, but CLI does not render MCP Apps and the desktop side panel has not been observed.",
+        "reason": "The plugin is installed and enabled in the local CLI profile and the thread-entrypoint metadata is advertised. The current desktop chat exposes no Session Lens MCP tools, and the Codex MCP Apps surface has zero tabs; CLI protocol success does not prove desktop activation or rendering.",
         "missingEvidence": "Actual Codex desktop render of ui://session-lens/l0-v1.html in the conversation side-panel surface."
       },
       {
@@ -47,6 +47,7 @@
     "unknownUsageAndEscaping": "passed",
     "localMarketplace": { "status": "registered", "sourceIsSanitizedBuild": true },
     "codexCliPluginInstall": { "status": "installed-and-enabled", "cacheContainsRepositoryInternals": false, "hooksTrusted": false },
+    "currentDesktopChatActivation": { "pluginInstalledInCliProfile": true, "sessionLensMcpToolsExposed": false, "codexMcpAppsTabCount": 0, "cause": "unknown", "evidence": "evidence/l0-host-recheck-2026-10-30.md" },
     "codexCliMcpCall": { "status": "passed", "tool": "open_session", "returnedMode": "host-bound", "sessionBinding": "codex-thread-id", "collectionEnabled": false, "mcpTransportSessionIdPresent": false, "codexThreadIdPresent": true, "identityMetadataKinds": ["thread", "session"], "threadIdReturnedOrPersisted": false, "mcpAppUiRendered": false, "evidence": "evidence/local-codex-host-test.json" },
     "codexAppServerThreadIsolationProbe": { "status": "passed", "ephemeralThreads": 2, "threadContextsDistinct": true, "mcpToolCallsConcurrent": true, "bothBoundToCodexThreadId": true, "collectionEnabled": false, "eventCounts": [0, 0], "rawThreadIdsReturnedOrPersisted": false, "modelTurnsStarted": false, "evidence": "evidence/local-codex-host-test.json" },
     "codexAppServerMetadataProbe": { "status": "thread-id-match", "resumeStatus": "blocked-active-writer", "turnContentPersistedByProbe": false },
