@@ -15,7 +15,7 @@ describe('fixture UI', () => {
 
   it('renders the native thread entrypoint as unbound and unavailable, never as fixture usage', async () => {
     const result = {
-      structuredContent: { schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable', collectionEnabled: false, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: false, identityLikeMetadataKeyPresent: false } },
+      structuredContent: { schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable', collectionEnabled: false, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: false, identityMetadataKinds: [] } },
     };
     let calls = 0;
     const controller = new DemoController(async () => { calls++; return {}; });
@@ -32,10 +32,11 @@ describe('fixture UI', () => {
 
   it('shows identity-like metadata key presence without treating it as a verified session binding', () => {
     const controller = new DemoController(async () => ({}));
-    controller.receive({ structuredContent: { schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable', collectionEnabled: false, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: true, identityLikeMetadataKeyPresent: true } } });
+    controller.receive({ structuredContent: { schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable', collectionEnabled: false, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: true, identityMetadataKinds: ['thread'] } } });
     const html = renderToStaticMarkup(<SessionLensView snapshot={controller.current} status="Codex entrypoint opened" busy={false} refresh={() => {}} advance={() => {}} />);
-    expect(html).toContain('检测到名称类似会话标识的 metadata 键');
-    expect(html).toContain('尚未验证它能否绑定当前会话');
+    expect(html).toContain('检测到线程身份类 metadata 键名');
+    expect(html).toContain('identity metadata unverified');
+    expect(html).toContain('未验证其能否绑定当前会话');
     expect(html).not.toContain('sessionId');
   });
 

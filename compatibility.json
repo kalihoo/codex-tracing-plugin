@@ -22,7 +22,7 @@
       },
       {
         "id": "current-session-binding-and-two-session-isolation", "status": "blocked",
-        "reason": "The thread entrypoint receives empty arguments. A real local CLI tool call exposed the presence of an identity-like metadata key, but this presence-only probe intentionally does not reveal its name or value and cannot verify that it matches the Codex conversation ID. A separate App Server metadata probe matched the current thread, but resuming it failed with an active-writer conflict; no hook or transcript adapter exists yet.",
+        "reason": "The thread entrypoint receives empty arguments. A real local CLI tool call included metadata key names classified as thread and session identity categories, but the probe does not reveal key names or values and cannot verify that they match the Codex conversation ID. A separate App Server metadata probe matched the current thread, but resuming it failed with an active-writer conflict; no hook or transcript adapter exists yet.",
         "missingEvidence": "A verified supported source that binds two concurrent disposable sessions to their own plugin instances, with distinct events and no cross-session leakage."
       },
       {
@@ -47,7 +47,7 @@
     "unknownUsageAndEscaping": "passed",
     "localMarketplace": { "status": "registered", "sourceIsSanitizedBuild": true },
     "codexCliPluginInstall": { "status": "installed-and-enabled", "cacheContainsRepositoryInternals": false, "hooksTrusted": false },
-    "codexCliMcpCall": { "status": "passed", "tool": "open_session", "returnedMode": "host-unbound", "collectionEnabled": false, "mcpTransportSessionIdPresent": false, "identityLikeMetadataKeyPresent": true, "metadataKeyOrValuePersisted": false, "bindingVerified": false, "mcpAppUiRendered": false, "evidence": "evidence/local-codex-host-test.json" },
+    "codexCliMcpCall": { "status": "passed", "tool": "open_session", "returnedMode": "host-unbound", "collectionEnabled": false, "mcpTransportSessionIdPresent": false, "identityMetadataKinds": ["thread", "session"], "metadataKeyOrValuePersisted": false, "bindingVerified": false, "mcpAppUiRendered": false, "evidence": "evidence/local-codex-host-test.json" },
     "codexAppServerMetadataProbe": { "status": "thread-id-match", "resumeStatus": "blocked-active-writer", "turnContentPersistedByProbe": false },
     "codexCliTokenUsage": { "status": "observed-from-real-ephemeral-turn", "source": "codex exec turn.completed.usage", "scope": "one local Codex CLI turn", "pluginCanReadParentTurn": false, "testSentThroughCodexModelService": true, "evidence": "evidence/local-codex-host-test.json" },
     "codexAppServerTokenUsageNotification": { "status": "not-observed", "reason": "isolated test turn failed before usage was emitted" },

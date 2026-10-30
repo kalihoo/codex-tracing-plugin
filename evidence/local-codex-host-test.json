@@ -29,7 +29,7 @@
       "collectionEnabled": false,
       "identityProbe": {
         "mcpTransportSessionIdPresent": false,
-        "identityLikeMetadataKeyPresent": true
+        "identityMetadataKinds": ["thread", "session"]
       },
       "identityHintMetadataValueObserved": false,
       "events": []
@@ -70,7 +70,7 @@
   },
   "identityMetadataProbe": {
     "source": "isolated local codex exec MCP tool call",
-    "identityLikeMetadataKeyPresent": true,
+    "identityMetadataKinds": ["thread", "session"],
     "mcpTransportSessionIdPresent": false,
     "metadataKeyOrValuePersisted": false,
     "usableSessionBindingVerified": false,

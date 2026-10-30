@@ -22,7 +22,7 @@ export const HostUnboundSnapshotSchema = z.strictObject({
   coverage: z.literal('unavailable'), events: z.tuple([]),
   identityProbe: z.strictObject({
     mcpTransportSessionIdPresent: z.boolean(),
-    identityLikeMetadataKeyPresent: z.boolean(),
+    identityMetadataKinds: z.array(z.enum(['thread', 'conversation', 'session'])).max(3),
   }),
 });
 export type HostUnboundSnapshot = z.infer<typeof HostUnboundSnapshotSchema>;

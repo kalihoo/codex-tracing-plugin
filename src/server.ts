@@ -24,18 +24,19 @@ export function createServer(html: string): McpServer {
       'openai/ui': { entrypoints: [{ type: 'thread' }] },
     },
   }, async (_args, extra) => {
-    const identityLikeMetadataKeyPresent = Object.keys(extra._meta ?? {}).some((key) =>
-      /(?:thread|conversation|session).*?(?:id|identifier)|(?:id|identifier).*?(?:thread|conversation|session)/i.test(key));
+    const metadataKeys = Object.keys(extra._meta ?? {});
+    const identityMetadataKinds = (['thread', 'conversation', 'session'] as const).filter((kind) =>
+      metadataKeys.some((key) => new RegExp(`(?:${kind}).*?(?:id|identifier)|(?:id|identifier).*?(?:${kind})`, 'i').test(key)));
     const snapshot: HostUnboundSnapshot = {
       schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable',
       collectionEnabled: false, coverage: 'unavailable', events: [],
       identityProbe: {
         mcpTransportSessionIdPresent: typeof extra.sessionId === 'string' && extra.sessionId.length > 0,
-        identityLikeMetadataKeyPresent,
+        identityMetadataKinds,
       },
     };
     return {
-      content: [{ type: 'text' as const, text: 'Session Lens opened. Host identity hint presence was checked without reading its value; session binding remains unverified and collection remains off.' }],
+      content: [{ type: 'text' as const, text: 'Session Lens opened. Identity-like metadata key categories were checked without reading key or value; session binding remains unverified and collection remains off.' }],
       structuredContent: snapshot,
     };
   });

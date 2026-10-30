@@ -15,13 +15,18 @@ export function SessionLensView({ snapshot, status, busy, refresh, advance }: { 
     <footer>Session Lens 0.1.0-l0 · No session data captured</footer>
   </main>;
 
-  if (snapshot?.mode === 'host-unbound') return <main>
+  if (snapshot?.mode === 'host-unbound') {
+    const identityLabels = snapshot.identityProbe.identityMetadataKinds.map((kind) => ({ thread: '线程', conversation: '对话', session: '会话' })[kind]);
+    const identityMessage = identityLabels.length
+      ? `检测到${identityLabels.join('、')}身份类 metadata 键名；未验证其能否绑定当前会话。`
+      : '未检测到名称对应线程、对话或会话标识的 metadata 键。';
+    return <main>
     <header><p className="eyebrow">L0 · Codex thread entrypoint</p><h1>Session Lens</h1>
-      <p className="notice">Collection off · host identity unavailable</p></header>
+      <p className="notice">{identityLabels.length ? 'Collection off · identity metadata unverified' : 'Collection off · host identity unavailable'}</p></header>
     <section aria-label="Host binding status">
       <h2>未绑定当前会话</h2>
-      <p>{snapshot.identityProbe.identityLikeMetadataKeyPresent ? '检测到名称类似会话标识的 metadata 键，但尚未验证它能否绑定当前会话。' : '未检测到名称类似会话标识的 metadata 键。'}{snapshot.identityProbe.mcpTransportSessionIdPresent ? ' MCP 传输 session ID 仅用于传输，不代表 Codex 对话标识。' : ''}</p>
-      <p>本版本尚未连接生命周期事件流，因此不会读取或保存此对话内容。诊断只检查 metadata 键名，不读取或显示字段值。</p>
+      <p>{identityMessage}{snapshot.identityProbe.mcpTransportSessionIdPresent ? ' MCP 传输 session ID 仅用于传输，不代表 Codex 对话标识。' : ''}</p>
+      <p>本版本尚未连接生命周期事件流，因此不会读取或保存此对话内容。诊断只显示类别，不读取或显示 metadata 键名与字段值。</p>
       <p role="status" aria-live="polite">{status}</p>
     </section>
     <section aria-label="Unavailable usage">
@@ -31,7 +36,8 @@ export function SessionLensView({ snapshot, status, busy, refresh, advance }: { 
     </section>
     <section aria-label="Collection status"><h2>采集状态</h2><p>未采集任何事件。Hooks 仍未获信任，内容采集保持关闭。</p></section>
     <footer>Session Lens 0.1.0-l0 · No session data captured</footer>
-  </main>;
+    </main>;
+  }
 
   const demo = snapshot?.mode === 'synthetic-fixture' ? snapshot : null;
   const usage = demo?.usage;
