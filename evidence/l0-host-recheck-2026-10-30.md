@@ -10,6 +10,7 @@ L0 remains **blocked**. Local package checks pass, and Codex thread identity bin
 - The stdio smoke covers two synthetic sessions, refresh from one to two events, cumulative usage snapshots, unknown usage, and the inline UI. It explicitly provides no real-host proof.
 - The local Codex CLI MCP call and two-thread App Server probe recorded in `local-codex-host-test.json` bind only to the exact Codex `threadId` metadata field. Both probe calls returned empty event lists and withheld raw IDs.
 - The installed lifecycle hook is still a silent `SessionStart` no-op; hook trust is off and collection is disabled. No conversation content was read or persisted during this recheck.
+- An isolated `codex exec --ephemeral --ignore-user-config` probe used a temporary `SessionStart` hook that was limited to recording field-presence booleans. The CLI announced `SessionStart`, but reported the hook as failed and produced no result marker. The same probe script parsed the synthetic hook fixture successfully. A read-only sandbox blocking the marker write is a plausible explanation, not a confirmed cause. This did not verify live hook payload delivery or the plugin hook. The short model turn displayed 8,559 tokens used.
 
 ## Desktop host observation
 
@@ -34,3 +35,5 @@ OpenAI's [Codex App Server documentation](https://learn.chatgpt.com/docs/app-ser
 ## Next acceptance action
 
 Open Session Lens from its thread entrypoint in the current Codex conversation. If it renders, verify the correct thread binding and live refresh in that surface; then continue the remaining L0 checks. If the entrypoint is missing or opening it does not render the panel, record that host result and keep later phases gated.
+
+The isolated hook probe can be repeated only after adjusting its output channel so it does not require a filesystem write under the hook sandbox. It should remain a temporary, allowlist-only test and must not be interpreted as the plugin collecting session content.
