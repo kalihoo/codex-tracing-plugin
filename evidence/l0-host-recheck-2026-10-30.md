@@ -18,6 +18,7 @@ L0 remains **blocked**. Local package checks pass, and Codex thread identity bin
 
 - The current Codex desktop thread is identified by the host tooling as a local active Codex thread.
 - `codex plugin list --json` reports `session-lens@session-lens-local` installed and enabled at version `0.1.0-l0` in the local CLI profile. However, the current desktop chat's available MCP tool inventory contains no Session Lens tools, and the Codex MCP Apps surface still has zero tabs. The reason the already-running chat does not expose the plugin is unknown; this does not prove that a fresh chat or another Codex build would behave the same way.
+- The user explicitly confirmed that the Session Lens thread entrypoint is not visible in the current chat. This confirms the current-chat activation check failed; it does not identify the cause or establish behavior in a fresh chat/build.
 - The `Codex MCP Apps` surface currently has zero tabs.
 - The separate local browser preview at `http://127.0.0.1:4175/` is not an MCP App host render and is not counted as side-panel evidence.
 - The registered `open_session` tool advertises a thread entrypoint. OpenAI's [plugin extension documentation](https://developers.openai.com/plugins/build/extensions) describes conversation panels as a place users can open an app beside a conversation, but does not document an API for mounting that entrypoint programmatically.
@@ -38,6 +39,6 @@ OpenAI's [Codex App Server documentation](https://learn.chatgpt.com/docs/app-ser
 
 ## Next acceptance action
 
-Open a fresh local Codex chat after reloading the local plugin, and verify that the `open_session` entrypoint is exposed there. If it renders, verify the correct thread binding and live refresh in that surface; then continue the remaining L0 checks. If the entrypoint is still missing or opening it does not render the panel, record that host result and keep later phases gated.
+Reload the local plugin and open a fresh local Codex chat, then verify that the `open_session` entrypoint is exposed there. This step requires a fresh host chat because the current chat has no visible entrypoint. If it renders, verify the correct thread binding and live refresh in that surface; then continue the remaining L0 checks. If the entrypoint is still missing or opening it does not render the panel, record that host result and keep later phases gated.
 
 The successful CLI hook sample used a writable, ignored probe directory and a temporary one-off hook. It must not be interpreted as the installed plugin collecting session content. Hook sources remain untrusted in the user's persistent configuration and collection remains disabled.
