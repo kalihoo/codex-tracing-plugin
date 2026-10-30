@@ -36,7 +36,9 @@ app.ontoolresult = (result) => {
     controller.receive(result);
     status = controller.current?.mode === 'host-unbound'
       ? 'Codex thread panel opened · session identity unavailable · collection off'
-      : 'Synthetic fixture ready · host gates unverified';
+      : controller.current?.mode === 'host-bound'
+        ? 'Codex thread context recognized · collection off'
+        : 'Synthetic fixture ready · host gates unverified';
   }
   catch { status = 'Rejected invalid or mismatched fixture snapshot.'; }
   render();

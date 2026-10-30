@@ -16,17 +16,25 @@ export const DemoSnapshotSchema = z.strictObject({
 { message: 'Snapshot must contain only its requested session' });
 export type DemoSnapshot = z.infer<typeof DemoSnapshotSchema>;
 
+const IdentityProbeSchema = z.strictObject({
+  mcpTransportSessionIdPresent: z.boolean(),
+  identityMetadataKinds: z.array(z.enum(['thread', 'conversation', 'session'])).max(3),
+});
+export const HostBoundSnapshotSchema = z.strictObject({
+  schemaVersion: z.literal(1), mode: z.literal('host-bound'),
+  sessionBinding: z.literal('codex-thread-id'), collectionEnabled: z.literal(false),
+  coverage: z.literal('unavailable'), events: z.tuple([]),
+  identityProbe: IdentityProbeSchema.extend({ codexThreadIdPresent: z.literal(true) }),
+});
+export type HostBoundSnapshot = z.infer<typeof HostBoundSnapshotSchema>;
 export const HostUnboundSnapshotSchema = z.strictObject({
   schemaVersion: z.literal(1), mode: z.literal('host-unbound'),
   sessionBinding: z.literal('unavailable'), collectionEnabled: z.literal(false),
   coverage: z.literal('unavailable'), events: z.tuple([]),
-  identityProbe: z.strictObject({
-    mcpTransportSessionIdPresent: z.boolean(),
-    identityMetadataKinds: z.array(z.enum(['thread', 'conversation', 'session'])).max(3),
-  }),
+  identityProbe: IdentityProbeSchema.extend({ codexThreadIdPresent: z.literal(false) }),
 });
 export type HostUnboundSnapshot = z.infer<typeof HostUnboundSnapshotSchema>;
-export const SessionLensSnapshotSchema = z.discriminatedUnion('mode', [DemoSnapshotSchema, HostUnboundSnapshotSchema]);
+export const SessionLensSnapshotSchema = z.discriminatedUnion('mode', [DemoSnapshotSchema, HostBoundSnapshotSchema, HostUnboundSnapshotSchema]);
 export type SessionLensSnapshot = z.infer<typeof SessionLensSnapshotSchema>;
 
 // Ephemeral fixtures only: no host discovery, user content or disk writes.

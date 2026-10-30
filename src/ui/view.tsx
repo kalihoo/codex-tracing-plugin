@@ -15,6 +15,23 @@ export function SessionLensView({ snapshot, status, busy, refresh, advance }: { 
     <footer>Session Lens 0.1.0-l0 · No session data captured</footer>
   </main>;
 
+  if (snapshot?.mode === 'host-bound') return <main>
+    <header><p className="eyebrow">L0 · Codex thread entrypoint</p><h1>Session Lens</h1>
+      <p className="notice">已识别线程 · 采集关闭</p></header>
+    <section aria-label="Host binding status">
+      <h2>已识别当前 Codex 线程</h2>
+      <p>Codex App Server 提供了当前线程标识。Session Lens 不回显或持久化 thread ID。</p>
+      <p role="status" aria-live="polite">{status}</p>
+    </section>
+    <section aria-label="Unavailable usage">
+      <h2>Token 用量</h2>
+      <dl><div><dt>输入</dt><dd>不可用</dd></div><div><dt>输出</dt><dd>不可用</dd></div><div><dt>来源</dt><dd>未连接</dd></div></dl>
+      <p className="muted">当前版本尚未接入真实 usage 通知；不使用字符数估算。</p>
+    </section>
+    <section aria-label="Collection status"><h2>采集状态</h2><p>线程上下文已识别，生命周期采集尚未接入；未采集事件。</p></section>
+    <footer>Session Lens 0.1.0-l0 · Bound to host context · No session data captured</footer>
+  </main>;
+
   if (snapshot?.mode === 'host-unbound') {
     const identityLabels = snapshot.identityProbe.identityMetadataKinds.map((kind) => ({ thread: '线程', conversation: '对话', session: '会话' })[kind]);
     const identityMessage = identityLabels.length

@@ -25,7 +25,7 @@ try {
   const host = await client.callTool({ name: 'open_session', arguments: {} });
   assert.deepEqual(host.structuredContent, { schemaVersion: 1, mode: 'host-unbound',
     sessionBinding: 'unavailable', collectionEnabled: false, coverage: 'unavailable', events: [],
-    identityProbe: { mcpTransportSessionIdPresent: false, identityMetadataKinds: [] } });
+    identityProbe: { mcpTransportSessionIdPresent: false, codexThreadIdPresent: false, identityMetadataKinds: [] } });
   const read = async (name, sessionId) => {
     const result = await client.callTool({ name, arguments: { sessionId } });
     assert.equal(result.isError, undefined);

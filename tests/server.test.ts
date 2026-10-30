@@ -30,12 +30,12 @@ describe('real MCP protocol, synthetic data', () => {
     expect(result.structuredContent).toEqual({
       schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable',
       collectionEnabled: false, coverage: 'unavailable', events: [],
-      identityProbe: { mcpTransportSessionIdPresent: false, identityMetadataKinds: [] },
+      identityProbe: { mcpTransportSessionIdPresent: false, codexThreadIdPresent: false, identityMetadataKinds: [] },
     });
     expect(JSON.stringify(result.structuredContent)).not.toMatch(/fixture-alpha|inputTokens|outputTokens/);
   });
 
-  it('detects only the presence of a thread identity hint and never echoes its value', async () => {
+  it('does not bind arbitrary thread-like metadata keys and never echoes them', async () => {
     const client = await connect();
     const result = await client.callTool({ name: 'open_session', arguments: {}, _meta: { 'openai/threadId': 'synthetic-private-id' } });
     expect(result.structuredContent).toMatchObject({
@@ -44,6 +44,17 @@ describe('real MCP protocol, synthetic data', () => {
     });
     expect(JSON.stringify(result)).not.toContain('synthetic-private-id');
     expect(JSON.stringify(result)).not.toContain('openai/threadId');
+  });
+
+  it('binds to the Codex thread context without echoing the thread ID', async () => {
+    const client = await connect();
+    const result = await client.callTool({ name: 'open_session', arguments: {}, _meta: { threadId: 'synthetic-private-id' } });
+    expect(result.structuredContent).toMatchObject({
+      mode: 'host-bound', sessionBinding: 'codex-thread-id', collectionEnabled: false,
+      identityProbe: { codexThreadIdPresent: true, identityMetadataKinds: ['thread'] },
+    });
+    expect(JSON.stringify(result)).not.toContain('synthetic-private-id');
+    expect(JSON.stringify(result)).not.toContain('threadId');
   });
 
   it('advertises a resource-linked tool and a self-contained MCP Apps resource', async () => {

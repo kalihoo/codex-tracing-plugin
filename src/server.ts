@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { registerAppResource, registerAppTool, RESOURCE_MIME_TYPE } from '@modelcontextprotocol/ext-apps/server';
-import { DemoSessionIdSchema, DemoStore, type DemoSnapshot, type HostUnboundSnapshot } from './demo';
+import { DemoSessionIdSchema, DemoStore, HostBoundSnapshotSchema, HostUnboundSnapshotSchema, type DemoSnapshot, type HostBoundSnapshot, type HostUnboundSnapshot } from './demo';
 
 export const UI_URI = 'ui://session-lens/l0-v1.html';
 export function createServer(html: string): McpServer {
@@ -27,16 +27,24 @@ export function createServer(html: string): McpServer {
     const metadataKeys = Object.keys(extra._meta ?? {});
     const identityMetadataKinds = (['thread', 'conversation', 'session'] as const).filter((kind) =>
       metadataKeys.some((key) => new RegExp(`(?:${kind}).*?(?:id|identifier)|(?:id|identifier).*?(?:${kind})`, 'i').test(key)));
-    const snapshot: HostUnboundSnapshot = {
-      schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable',
-      collectionEnabled: false, coverage: 'unavailable', events: [],
-      identityProbe: {
-        mcpTransportSessionIdPresent: typeof extra.sessionId === 'string' && extra.sessionId.length > 0,
-        identityMetadataKinds,
-      },
-    };
+    const mcpTransportSessionIdPresent = typeof extra.sessionId === 'string' && extra.sessionId.length > 0;
+    const codexThreadIdPresent = typeof extra._meta?.threadId === 'string' && extra._meta.threadId.trim().length > 0;
+    const identityProbe = { mcpTransportSessionIdPresent, identityMetadataKinds };
+    const snapshot: HostBoundSnapshot | HostUnboundSnapshot = codexThreadIdPresent
+      ? HostBoundSnapshotSchema.parse({
+        schemaVersion: 1, mode: 'host-bound', sessionBinding: 'codex-thread-id',
+        collectionEnabled: false, coverage: 'unavailable', events: [],
+        identityProbe: { ...identityProbe, codexThreadIdPresent: true },
+      })
+      : HostUnboundSnapshotSchema.parse({
+        schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable',
+        collectionEnabled: false, coverage: 'unavailable', events: [],
+        identityProbe: { ...identityProbe, codexThreadIdPresent: false },
+      });
     return {
-      content: [{ type: 'text' as const, text: 'Session Lens opened. Identity-like metadata key categories were checked without reading key or value; session binding remains unverified and collection remains off.' }],
+      content: [{ type: 'text' as const, text: codexThreadIdPresent
+        ? 'Session Lens recognized the Codex thread context. The thread ID is not returned; collection remains off.'
+        : 'Session Lens found no Codex thread ID metadata. Identity-like key categories were checked without reading key or value; collection remains off.' }],
       structuredContent: snapshot,
     };
   });

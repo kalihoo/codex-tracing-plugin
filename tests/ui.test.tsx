@@ -15,7 +15,7 @@ describe('fixture UI', () => {
 
   it('renders the native thread entrypoint as unbound and unavailable, never as fixture usage', async () => {
     const result = {
-      structuredContent: { schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable', collectionEnabled: false, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: false, identityMetadataKinds: [] } },
+      structuredContent: { schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable', collectionEnabled: false, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: false, codexThreadIdPresent: false, identityMetadataKinds: [] } },
     };
     let calls = 0;
     const controller = new DemoController(async () => { calls++; return {}; });
@@ -32,7 +32,7 @@ describe('fixture UI', () => {
 
   it('shows identity-like metadata key presence without treating it as a verified session binding', () => {
     const controller = new DemoController(async () => ({}));
-    controller.receive({ structuredContent: { schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable', collectionEnabled: false, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: true, identityMetadataKinds: ['thread'] } } });
+    controller.receive({ structuredContent: { schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable', collectionEnabled: false, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: true, codexThreadIdPresent: false, identityMetadataKinds: ['thread'] } } });
     const html = renderToStaticMarkup(<SessionLensView snapshot={controller.current} status="Codex entrypoint opened" busy={false} refresh={() => {}} advance={() => {}} />);
     expect(html).toContain('检测到线程身份类 metadata 键名');
     expect(html).toContain('identity metadata unverified');
@@ -64,6 +64,16 @@ describe('fixture UI', () => {
     const controller = new DemoController(async () => { calls++; return {}; });
     await expect(controller.refresh()).rejects.toThrow();
     expect(calls).toBe(0);
+  });
+
+  it('shows a host-bound Codex thread without rendering its identifier or enabling collection', () => {
+    const controller = new DemoController(async () => ({}));
+    controller.receive({ structuredContent: { schemaVersion: 1, mode: 'host-bound', sessionBinding: 'codex-thread-id', collectionEnabled: false, coverage: 'unavailable', events: [], identityProbe: { mcpTransportSessionIdPresent: true, codexThreadIdPresent: true, identityMetadataKinds: ['thread'] } } });
+    const html = renderToStaticMarkup(<SessionLensView snapshot={controller.current} status="Codex entrypoint opened" busy={false} refresh={() => {}} advance={() => {}} />);
+    expect(html).toContain('已识别当前 Codex 线程');
+    expect(html).toContain('采集关闭');
+    expect(html).not.toContain('synthetic-private-id');
+    expect(html).not.toContain('threadId');
   });
   it('escapes malicious content and renders unavailable usage explicitly', () => {
     const snapshot = new DemoStore().read('fixture-beta');

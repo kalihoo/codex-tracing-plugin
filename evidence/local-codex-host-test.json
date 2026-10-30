@@ -24,14 +24,15 @@
     "arguments": {},
     "status": "passed",
     "result": {
-      "mode": "host-unbound",
-      "sessionBinding": "unavailable",
+      "mode": "host-bound",
+      "sessionBinding": "codex-thread-id",
       "collectionEnabled": false,
       "identityProbe": {
         "mcpTransportSessionIdPresent": false,
+        "codexThreadIdPresent": true,
         "identityMetadataKinds": ["thread", "session"]
       },
-      "identityHintMetadataValueObserved": false,
+      "threadIdReturnedOrPersisted": false,
       "events": []
     },
     "mcpAppRenderedByCli": false
@@ -72,9 +73,28 @@
     "source": "isolated local codex exec MCP tool call",
     "identityMetadataKinds": ["thread", "session"],
     "mcpTransportSessionIdPresent": false,
-    "metadataKeyOrValuePersisted": false,
-    "usableSessionBindingVerified": false,
-    "limitation": "The presence-only probe does not reveal metadata key semantics or prove that its value matches the Codex conversation ID."
+    "codexAppServerThreadIdFieldPresent": true,
+    "threadIdReturnedOrPersisted": false,
+    "usableSessionBindingVerified": true,
+    "limitation": "Binding was verified through the Codex App Server threadId metadata contract; no lifecycle event or token usage is yet attached to the bound thread."
+  },
+  "appServerThreadIsolationProbe": {
+    "source": "codex app-server --stdio",
+    "status": "passed",
+    "ephemeralThreadsCreated": 2,
+    "threadContextsDistinct": true,
+    "mcpToolCallsConcurrent": true,
+    "eachResult": {
+      "mode": "host-bound",
+      "sessionBinding": "codex-thread-id",
+      "codexThreadIdPresent": true,
+      "collectionEnabled": false,
+      "eventCount": 0,
+      "runtimeStatus": "connected"
+    },
+    "rawThreadIdsReturnedOrPersisted": false,
+    "modelTurnsStarted": false,
+    "userContentPersisted": false
   },
   "collection": {
     "enabled": false,
