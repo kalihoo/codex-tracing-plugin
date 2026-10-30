@@ -1,6 +1,6 @@
 $ vitest run
 
- RUN  v5.0.5 /Users/nozilla/Documents/Codex/2026-10-30/sites-plugin-sites-openai-curated-remote-2/outputs/session-lens
+ RUN  v5.0.5 <repo>
 
  ❯ tests/adapters.test.ts (14 tests | 14 failed) 9ms
    ❯ evidenced source adapters (synthetic input only) (14)

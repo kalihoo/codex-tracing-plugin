@@ -12,7 +12,7 @@ dist/ui.js             979.97 kB │ gzip: 274.45 kB
 ✓ built in 688ms
 $ vitest run
 
- RUN  v5.0.5 /Users/nozilla/Documents/Codex/2026-10-30/sites-plugin-sites-openai-curated-remote-2/outputs/session-lens
+ RUN  v5.0.5 <repo>
 
 
  Test Files  5 passed (5)

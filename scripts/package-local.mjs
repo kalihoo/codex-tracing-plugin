@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 const stage = resolve('work/package/session-lens');
 await rm(stage, { recursive: true, force: true });
 await mkdir(stage, { recursive: true });
-for (const file of ['plugin.json', 'mcp.json', '.codex-plugin', '.mcp.json', 'hooks', 'dist', 'README.md', 'compatibility.json', 'evidence']) {
+for (const file of ['plugin.json', 'mcp.json', '.codex-plugin', '.mcp.json', 'hooks', 'dist', 'README.md', 'IMPLEMENTATION_PLAN.md', 'compatibility.json', 'evidence']) {
   await cp(file, resolve(stage, file), { recursive: true });
 }
 const packed = spawnSync('tar', ['-czf', resolve('session-lens-l0.tgz'), '-C', resolve('work/package'), 'session-lens'], { stdio: 'inherit' });
