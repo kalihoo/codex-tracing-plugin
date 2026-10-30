@@ -14,10 +14,6 @@ export function createServer(html: string): McpServer {
     contents: [{ uri: UI_URI, mimeType: RESOURCE_MIME_TYPE, text: html,
       _meta: { ui: { prefersBorder: true, csp: { connectDomains: [], resourceDomains: [] } } } }],
   }));
-  const unbound: HostUnboundSnapshot = {
-    schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable',
-    collectionEnabled: false, coverage: 'unavailable', events: [],
-  };
   registerAppTool(server, 'open_session', {
     title: 'Open Session Lens in this conversation',
     description: 'Open the local Session Lens side panel for this Codex conversation. This L0 prototype displays host-binding status only; it does not read or collect conversation content, lifecycle events, or token usage.',
@@ -27,10 +23,22 @@ export function createServer(html: string): McpServer {
       ui: { resourceUri: UI_URI },
       'openai/ui': { entrypoints: [{ type: 'thread' }] },
     },
-  }, async () => ({
-    content: [{ type: 'text' as const, text: 'Session Lens opened. The Codex MCP thread entrypoint does not supply a session identifier; collection remains off.' }],
-    structuredContent: unbound,
-  }));
+  }, async (_args, extra) => {
+    const identityLikeMetadataKeyPresent = Object.keys(extra._meta ?? {}).some((key) =>
+      /(?:thread|conversation|session).*?(?:id|identifier)|(?:id|identifier).*?(?:thread|conversation|session)/i.test(key));
+    const snapshot: HostUnboundSnapshot = {
+      schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable',
+      collectionEnabled: false, coverage: 'unavailable', events: [],
+      identityProbe: {
+        mcpTransportSessionIdPresent: typeof extra.sessionId === 'string' && extra.sessionId.length > 0,
+        identityLikeMetadataKeyPresent,
+      },
+    };
+    return {
+      content: [{ type: 'text' as const, text: 'Session Lens opened. Host identity hint presence was checked without reading its value; session binding remains unverified and collection remains off.' }],
+      structuredContent: snapshot,
+    };
+  });
   registerAppTool(server, 'open_demo', {
     title: 'Open Session Lens synthetic demo',
     description: 'Inspect a chosen synthetic fixture session in the L0 UI. Does not bind to or collect the current Codex chat. Host side-panel support is unverified.',

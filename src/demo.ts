@@ -20,6 +20,10 @@ export const HostUnboundSnapshotSchema = z.strictObject({
   schemaVersion: z.literal(1), mode: z.literal('host-unbound'),
   sessionBinding: z.literal('unavailable'), collectionEnabled: z.literal(false),
   coverage: z.literal('unavailable'), events: z.tuple([]),
+  identityProbe: z.strictObject({
+    mcpTransportSessionIdPresent: z.boolean(),
+    identityLikeMetadataKeyPresent: z.boolean(),
+  }),
 });
 export type HostUnboundSnapshot = z.infer<typeof HostUnboundSnapshotSchema>;
 export const SessionLensSnapshotSchema = z.discriminatedUnion('mode', [DemoSnapshotSchema, HostUnboundSnapshotSchema]);

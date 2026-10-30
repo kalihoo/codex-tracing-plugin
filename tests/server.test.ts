@@ -30,8 +30,19 @@ describe('real MCP protocol, synthetic data', () => {
     expect(result.structuredContent).toEqual({
       schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable',
       collectionEnabled: false, coverage: 'unavailable', events: [],
+      identityProbe: { mcpTransportSessionIdPresent: false, identityLikeMetadataKeyPresent: false },
     });
     expect(JSON.stringify(result.structuredContent)).not.toMatch(/fixture-alpha|inputTokens|outputTokens/);
+  });
+
+  it('detects only the presence of a thread identity hint and never echoes its value', async () => {
+    const client = await connect();
+    const result = await client.callTool({ name: 'open_session', arguments: {}, _meta: { 'openai/threadId': 'synthetic-private-id' } });
+    expect(result.structuredContent).toMatchObject({
+      mode: 'host-unbound',
+      identityProbe: { identityLikeMetadataKeyPresent: true },
+    });
+    expect(JSON.stringify(result)).not.toContain('synthetic-private-id');
   });
 
   it('advertises a resource-linked tool and a self-contained MCP Apps resource', async () => {

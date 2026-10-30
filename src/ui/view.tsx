@@ -20,7 +20,8 @@ export function SessionLensView({ snapshot, status, busy, refresh, advance }: { 
       <p className="notice">Collection off · host identity unavailable</p></header>
     <section aria-label="Host binding status">
       <h2>未绑定当前会话</h2>
-      <p>此页面已打开，但传给 MCP 入口工具的参数不包含会话标识。本版本也未连接生命周期事件流，因此不会读取或保存此对话内容。</p>
+      <p>{snapshot.identityProbe.identityLikeMetadataKeyPresent ? '检测到名称类似会话标识的 metadata 键，但尚未验证它能否绑定当前会话。' : '未检测到名称类似会话标识的 metadata 键。'}{snapshot.identityProbe.mcpTransportSessionIdPresent ? ' MCP 传输 session ID 仅用于传输，不代表 Codex 对话标识。' : ''}</p>
+      <p>本版本尚未连接生命周期事件流，因此不会读取或保存此对话内容。诊断只检查 metadata 键名，不读取或显示字段值。</p>
       <p role="status" aria-live="polite">{status}</p>
     </section>
     <section aria-label="Unavailable usage">

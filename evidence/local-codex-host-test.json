@@ -27,6 +27,11 @@
       "mode": "host-unbound",
       "sessionBinding": "unavailable",
       "collectionEnabled": false,
+      "identityProbe": {
+        "mcpTransportSessionIdPresent": false,
+        "identityLikeMetadataKeyPresent": true
+      },
+      "identityHintMetadataValueObserved": false,
       "events": []
     },
     "mcpAppRenderedByCli": false
@@ -62,6 +67,14 @@
     "threadEntrypointAdvertised": true,
     "renderedInCodexDesktop": false,
     "reason": "The Codex native app surface was not accessible to the available UI automation; CLI does not render MCP Apps."
+  },
+  "identityMetadataProbe": {
+    "source": "isolated local codex exec MCP tool call",
+    "identityLikeMetadataKeyPresent": true,
+    "mcpTransportSessionIdPresent": false,
+    "metadataKeyOrValuePersisted": false,
+    "usableSessionBindingVerified": false,
+    "limitation": "The presence-only probe does not reveal metadata key semantics or prove that its value matches the Codex conversation ID."
   },
   "collection": {
     "enabled": false,
