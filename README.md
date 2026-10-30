@@ -17,6 +17,8 @@ pnpm package:local
 
 After installing the local plugin, run `pnpm probe:host-isolation` to verify thread binding against the installed Codex App Server. It creates two concurrent ephemeral threads, starts no model turn, prints only binding/status booleans and event counts, and does not persist thread IDs or content. This protocol probe does not render the MCP App UI.
 
+`node scripts/host-session-start-probe.mjs` checks whether a no-model App Server `thread/start` delivers a `SessionStart` hook in an isolated temporary `CODEX_HOME`. On the tested build it starts the ephemeral thread but observes no hook payload. A separate ephemeral CLI turn did deliver a real payload to a one-off field-presence-only hook; this consumed model tokens and did not exercise the installed plugin hook. See [the sanitized recheck evidence](evidence/l0-host-recheck-2026-10-30.md).
+
 After `pnpm package:local` has generated the sanitized `work/package/session-lens` directory, register the repository as a local Codex marketplace and install the plugin for a new local chat:
 
 ```sh

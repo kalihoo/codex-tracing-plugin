@@ -11,6 +11,8 @@ L0 remains **blocked**. Local package checks pass, and Codex thread identity bin
 - The local Codex CLI MCP call and two-thread App Server probe recorded in `local-codex-host-test.json` bind only to the exact Codex `threadId` metadata field. Both probe calls returned empty event lists and withheld raw IDs.
 - The installed lifecycle hook is still a silent `SessionStart` no-op; hook trust is off and collection is disabled. No conversation content was read or persisted during this recheck.
 - An isolated `codex exec --ephemeral --ignore-user-config` probe used a temporary `SessionStart` hook that was limited to recording field-presence booleans. The CLI announced `SessionStart`, but reported the hook as failed and produced no result marker. The same probe script parsed the synthetic hook fixture successfully. A read-only sandbox blocking the marker write is a plausible explanation, not a confirmed cause. This did not verify live hook payload delivery or the plugin hook. The short model turn displayed 8,559 tokens used.
+- A follow-up disposable CLI run switched the probe's working directory to the writable ignored `work/` area. The temporary hook then received a real `SessionStart` JSON payload and recorded only booleans: valid JSON, `session_id`, `cwd`, and `source` were present; `transcript_path` was absent. This is one ephemeral CLI sample from a custom one-off hook, not proof that the installed plugin hook or desktop side panel receives events. No raw fields or persistent session files were retained. Codex displayed 9,004 tokens used for the short model turn.
+- A separate no-model App Server probe used a temporary `CODEX_HOME`, an ephemeral `thread/start`, and the same allowlist-only hook with invocation-scoped trust bypass. The thread started, but no hook payload was observed. This only establishes that this App Server `thread/start` probe did not deliver the hook; it does not rule out hook delivery during a real turn.
 
 ## Desktop host observation
 
@@ -36,4 +38,4 @@ OpenAI's [Codex App Server documentation](https://learn.chatgpt.com/docs/app-ser
 
 Open Session Lens from its thread entrypoint in the current Codex conversation. If it renders, verify the correct thread binding and live refresh in that surface; then continue the remaining L0 checks. If the entrypoint is missing or opening it does not render the panel, record that host result and keep later phases gated.
 
-The isolated hook probe can be repeated only after adjusting its output channel so it does not require a filesystem write under the hook sandbox. It should remain a temporary, allowlist-only test and must not be interpreted as the plugin collecting session content.
+The successful CLI hook sample used a writable, ignored probe directory and a temporary one-off hook. It must not be interpreted as the installed plugin collecting session content. Hook sources remain untrusted in the user's persistent configuration and collection remains disabled.

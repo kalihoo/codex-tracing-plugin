@@ -52,8 +52,10 @@
     "codexAppServerMetadataProbe": { "status": "thread-id-match", "resumeStatus": "blocked-active-writer", "turnContentPersistedByProbe": false },
     "codexCliTokenUsage": { "status": "observed-from-real-ephemeral-turn", "source": "codex exec turn.completed.usage", "scope": "one local Codex CLI turn", "pluginCanReadParentTurn": false, "testSentThroughCodexModelService": true, "evidence": "evidence/local-codex-host-test.json" },
     "codexAppServerTokenUsageNotification": { "status": "not-observed", "reason": "isolated test turn failed before usage was emitted" },
-    "ephemeralTestSessionsStarted": 3,
-    "codexCliSessionStartHookProbe": { "status": "hook-reported-failure", "sessionStartAnnounced": true, "allowlistedResultMarkerWritten": false, "syntheticFixtureParser": "passed", "modelTurnTokensDisplayed": 8559, "persistentSessionFiles": false, "rawEventFieldsPersisted": false, "evidence": "evidence/l0-host-recheck-2026-10-30.md" },
+    "ephemeralTestSessionsStarted": 5,
+    "codexCliSessionStartHookProbeReadOnlyAttempt": { "status": "hook-reported-failure", "sessionStartAnnounced": true, "allowlistedResultMarkerWritten": false, "syntheticFixtureParser": "passed", "modelTurnTokensDisplayed": 8559, "persistentSessionFiles": false, "rawEventFieldsPersisted": false, "evidence": "evidence/l0-host-recheck-2026-10-30.md" },
+    "codexCliSessionStartHookProbe": { "status": "temporary-hook-event-observed", "sessionStartAnnounced": true, "sessionIdPresent": true, "transcriptPathPresent": false, "cwdPresent": true, "sourcePresent": true, "installedPluginHookTested": false, "modelTurnTokensDisplayed": 9004, "persistentSessionFiles": false, "rawEventFieldsPersisted": false, "evidence": "evidence/l0-host-recheck-2026-10-30.md" },
+    "codexAppServerSessionStartHookProbe": { "status": "not-observed-on-thread-start", "ephemeralThreadStarted": true, "modelTurnStarted": false, "invocationScopedHookTrustBypass": true, "rawEventFieldsReturnedOrPersisted": false, "evidence": "evidence/l0-host-recheck-2026-10-30.md" },
     "browserPreview": { "status": "observed-by-coordinating-agent", "placement": "Codex right browser panel", "fixtureRevision": [0, 1], "eventCount": [1, 2], "totalTokens": [1000, 2500], "mcpAppsHostEvidence": false, "evidence": "evidence/codex-browser-observation.md" },
     "responsiveWidths": { "environment": "standalone Chromium", "requested": [360, 420, 720, 800], "evidence": "evidence/browser-results.txt", "actualCodexMcpWidthsVerified": false }
   },
