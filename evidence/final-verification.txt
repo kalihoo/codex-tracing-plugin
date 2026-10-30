@@ -5,6 +5,7 @@ $ pnpm package:local
 ✓ Bundled stdio MCP smoke without node_modules
 ✓ Explicit opt-in synthetic hook event refreshed through read_session
 ✓ Two synthetic sessions isolated; raw IDs and payload content absent from response and disk
+✓ Separate isolated ephemeral Codex CLI probe delivered a real UserPromptSubmit payload to the built hook entrypoint
 ✓ Sanitized package created at session-lens-l0.tgz (workspace release 0.1.1-l0)
 
-Scope limit: all hook events in smoke were synthetic. This does not verify real Codex hook delivery, hook session_id ↔ MCP threadId equality, desktop event isolation, or host token usage. The Codex CLI profile now reports version 0.1.1-l0 installed/enabled; the changed hook remains untrusted pending user review.
+Scope limit: the `pnpm smoke` hook payload was synthetic. The separate CLI probe used a temporary SessionStart opt-in bootstrap and does not verify plugin `PLUGIN_DATA` injection, hook session_id ↔ MCP threadId equality, desktop event isolation, or host token usage. The Codex CLI profile reports version 0.1.1-l0 installed/enabled; its changed plugin hook remains untrusted pending user review.
