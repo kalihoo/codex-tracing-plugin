@@ -39,7 +39,7 @@
   },
   "localValidation": {
     "strictTypesAndBuild": "passed",
-    "vitest": { "status": "passed", "tests": 35, "files": 6 },
+    "vitest": { "status": "passed", "tests": 38, "files": 7 },
     "mcpInMemoryProtocol": "passed",
     "bundledStdioWithoutNodeModules": { "status": "passed", "evidence": "evidence/stdio-smoke.json" },
     "fixtureIsolation": { "sessions": 2, "status": "passed", "realHostEvidence": false },

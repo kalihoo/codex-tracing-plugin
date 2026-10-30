@@ -15,6 +15,10 @@ pnpm package:local
 
 `pnpm check` runs strict TypeScript checks, bundles the React/Vite UI and Node stdio server, and runs Vitest. `pnpm smoke` launches a copy of the bundle without `node_modules`, drives the real MCP protocol through the SDK, and writes the served UI to `work/preview/index.html`. It never opens a real chat or reads host state. `pnpm package:local` creates `session-lens-l0.tgz` with a self-contained server; Node 24 must be on the desktop launch environment's PATH.
 
+Packaging targets macOS `bsdtar`: archive ownership is normalized to uid/gid 0 and root/root, and extended attributes, ACLs and AppleDouble metadata are suppressed. `tests/package.test.ts` exercises the real packaging script with a synthetic xattr file on macOS and inspects all archive headers. Hook tests use independently created OS temporary directories, so `pnpm test` also works before an ignored `work/` directory exists. The packaging verification tests require `python3` for archive inspection and macOS `xattr` for the synthetic metadata fixture.
+
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) preserves full supplied license and copyright files for the complete installed production dependency closure, conservatively covering both bundles and tree-shaken production packages. Packaging regenerates and includes it. After changing dependencies, run `node scripts/generate-third-party-notices.mjs` and commit the refreshed file with the lockfile.
+
 To view the standalone synthetic preview:
 
 ```sh

@@ -1,5 +1,6 @@
 import { readFileSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 
@@ -13,7 +14,7 @@ describe('local-only plugin wiring', () => {
     expect(json('.mcp.json').mcpServers).toEqual(json('mcp.json').mcpServers);
   });
   it.each(['not-json', '{"session_id":"fixture-alpha","prompt":"sk-synthetic"}', ''])('hook fails open without input parsing, output, or persistence: %s', (input) => {
-    const temp = mkdtempSync(resolve('work/hook-test-'));
+    const temp = mkdtempSync(join(tmpdir(), 'session-lens-hook-test-'));
     try {
       const result = spawnSync('/bin/sh', [resolve('hooks/noop.sh')], { input, encoding: 'utf8', cwd: temp, env: { PLUGIN_DATA: temp, PATH: '/usr/bin:/bin' }, timeout: 1000 });
       expect(result.status).toBe(0);
