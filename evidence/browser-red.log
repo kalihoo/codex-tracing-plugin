@@ -1,0 +1,6 @@
+[      85ms] ReferenceError: process is not defined
+    at http://127.0.0.1:4175/:331:1610
+    at http://127.0.0.1:4175/:2:205
+    at http://127.0.0.1:4175/:331:1684
+    at http://127.0.0.1:4175/:336:5988
+[      94ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:4175/favicon.ico:0

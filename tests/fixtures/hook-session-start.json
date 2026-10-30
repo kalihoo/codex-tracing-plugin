@@ -1,0 +1,9 @@
+{
+  "session_id": "fixture-alpha",
+  "transcript_path": "/synthetic/never-read/rollout.jsonl",
+  "cwd": "/synthetic/workspace",
+  "hook_event_name": "SessionStart",
+  "model": "synthetic-model",
+  "source": "startup",
+  "permission_mode": "default"
+}

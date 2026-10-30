@@ -1,0 +1,68 @@
+$ vitest run tests/plugin.test.ts
+
+ RUN  v5.0.5 /Users/nozilla/Documents/Codex/2026-10-30/sites-plugin-sites-openai-curated-remote-2/outputs/session-lens
+
+ ❯ tests/plugin.test.ts (5 tests | 5 failed) 24ms
+   ❯ local-only plugin wiring (5)
+     × uses portable manifests and an explicit Codex compatibility layout 4ms
+     × hook fails open without input parsing, output, or persistence: not-json 8ms
+     × hook fails open without input parsing, output, or persistence: {"session_id":"fixture-alpha","prompt":"sk-synthetic"} 6ms
+     × hook fails open without input parsing, output, or persistence:  6ms
+     × configures only an explicitly no-op lifecycle hook 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/plugin.test.ts > local-only plugin wiring > uses portable manifests and an explicit Codex compatibility layout
+Error: ENOENT: no such file or directory, open 'plugin.json'
+ ❯ json tests/plugin.test.ts:6:68
+      4| import { describe, expect, it } from 'vitest';
+      5|
+      6| const json = (file: string): Record<string, unknown> => JSON.parse(rea…
+       |                                                                    ^
+      7|
+      8| describe('local-only plugin wiring', () => {
+ ❯ tests/plugin.test.ts:10:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/plugin.test.ts > local-only plugin wiring > hook fails open without input parsing, output, or persistence: not-json
+ FAIL  tests/plugin.test.ts > local-only plugin wiring > hook fails open without input parsing, output, or persistence: {"session_id":"fixture-alpha","prompt":"sk-synthetic"}
+ FAIL  tests/plugin.test.ts > local-only plugin wiring > hook fails open without input parsing, output, or persistence:
+AssertionError: expected 127 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 127
+
+ ❯ tests/plugin.test.ts:19:29
+     17|     try {
+     18|       const result = spawnSync('/bin/sh', [resolve('hooks/noop.sh')], …
+     19|       expect(result.status).toBe(0);
+       |                             ^
+     20|       expect(result.stdout).toBe('');
+     21|       expect(result.stderr).toBe('');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  tests/plugin.test.ts > local-only plugin wiring > configures only an explicitly no-op lifecycle hook
+Error: ENOENT: no such file or directory, open 'hooks/hooks.json'
+ ❯ json tests/plugin.test.ts:6:68
+      4| import { describe, expect, it } from 'vitest';
+      5|
+      6| const json = (file: string): Record<string, unknown> => JSON.parse(rea…
+       |                                                                    ^
+      7|
+      8| describe('local-only plugin wiring', () => {
+ ❯ tests/plugin.test.ts:26:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed (5)
+   Start at  19:15:56
+   Duration  167ms (tests 51%, transform 27%, import 16%, worker 5%)
+
+[ELIFECYCLE] Test failed. See above for more details.

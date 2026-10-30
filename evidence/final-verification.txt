@@ -1,0 +1,26 @@
+$ pnpm check && pnpm smoke && node scripts/package-local.mjs
+$ pnpm build && pnpm test
+$ pnpm typecheck && vite build && node scripts/build-server.mjs
+$ tsc --noEmit
+vite v8.3.5 building client environment for production...
+transforming...
+✓ 159 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/session-lens.css    1.70 kB │ gzip:   0.78 kB
+dist/ui.js             552.32 kB │ gzip: 147.65 kB
+
+✓ built in 122ms
+$ vitest run
+
+ RUN  v5.0.5 /Users/nozilla/Documents/Codex/2026-10-30/sites-plugin-sites-openai-curated-remote-2/outputs/session-lens
+
+
+ Test Files  6 passed (6)
+      Tests  35 passed (35)
+   Start at  19:22:31
+   Duration  306ms (import 52%, transform 27%, tests 18%, worker 3%)
+
+$ node scripts/smoke.mjs
+PASS: bundled stdio MCP; 2 synthetic sessions isolated; refresh 1→2 events; cumulative 1000→2500; unknown usage; inline UI. No host proof.
+Created session-lens-l0.tgz. Requires Node 24 on PATH. Not installed; host L0 gates remain blocked.

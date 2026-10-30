@@ -1,0 +1,37 @@
+### Result
+{
+  "scope": "Standalone Chromium synthetic preview only",
+  "widths": [
+    {
+      "width": 360,
+      "documentWidth": 360,
+      "overflow": false
+    },
+    {
+      "width": 420,
+      "documentWidth": 420,
+      "overflow": false
+    },
+    {
+      "width": 720,
+      "documentWidth": 720,
+      "overflow": false
+    },
+    {
+      "width": 800,
+      "documentWidth": 800,
+      "overflow": false
+    }
+  ],
+  "keyboardFocus": "Refresh",
+  "refreshEventCount": 2,
+  "cumulativeTotal": 2500,
+  "unknownUsage": true,
+  "darkCssPreview": true,
+  "pageErrors": [],
+  "hostMcpEvidence": false
+}
+### Ran Playwright code
+```js
+await page.evaluate('() => (window.sessionLensValidation)');
+```

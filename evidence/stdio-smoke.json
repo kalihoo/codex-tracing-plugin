@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "scope": "local stdio MCP only",
+  "bundledWithoutNodeModules": true,
+  "sessions": 2,
+  "isolated": true,
+  "refreshEventCounts": [
+    1,
+    2
+  ],
+  "cumulativeTotals": [
+    1000,
+    2500
+  ],
+  "unknownUsagePreserved": true,
+  "uiResourceMimeType": "text/html;profile=mcp-app",
+  "externalAssetElements": 0,
+  "hostEvidence": false
+}

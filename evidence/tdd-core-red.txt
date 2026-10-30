@@ -1,0 +1,234 @@
+$ vitest run
+
+ RUN  v5.0.5 /Users/nozilla/Documents/Codex/2026-10-30/sites-plugin-sites-openai-curated-remote-2/outputs/session-lens
+
+ ❯ tests/adapters.test.ts (14 tests | 14 failed) 9ms
+   ❯ evidenced source adapters (synthetic input only) (14)
+     × retains exact cumulative counters and their subset semantics 5ms
+     × never passes another thread’s usage to the requested session 0ms
+     × preserves unavailable input as unknown: null 0ms
+     × preserves unavailable input as unknown: {} 0ms
+     × preserves unavailable input as unknown: {"method":"future/usage"} 0ms
+     × preserves unavailable input as unknown: {"method":"thread/tokenUsage/updated","params":{"threadId":"fixture-alpha","tokenUsage":null}} 0ms
+     × rejects invalid counter -1 0ms
+     × rejects invalid counter 1.2 0ms
+     × rejects invalid counter 9007199254740992 0ms
+     × rejects invalid counter 2200 0ms
+     × rejects missing input rather than estimating from text 0ms
+     × rejects inconsistent cached input subsets 0ms
+     × extracts only the documented hook identity, never a transcript path or content 0ms
+     × does not accept invented hook or rollout shapes 0ms
+ ❯ tests/contracts.test.ts (4 tests | 1 failed) 6ms
+   ❯ v1 contracts (4)
+     × accepts explicit unknown usage, timing and causality without zeros 5ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 15 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/adapters.test.ts > evidenced source adapters (synthetic input only) > retains exact cumulative counters and their subset semantics
+AssertionError: expected null to match object { status: 'reported', …(4) }
+
+- Expected:
+{
+  "aggregation": "cumulative-snapshot",
+  "counters": {
+    "cachedInputTokens": 1000,
+    "inputTokens": 2200,
+    "outputTokens": 300,
+    "reasoningOutputTokens": 75,
+    "totalTokens": 2500,
+  },
+  "scope": "thread",
+  "sessionId": "fixture-alpha",
+  "status": "reported",
+}
+
++ Received:
+null
+
+ ❯ tests/adapters.test.ts:8:63
+      6| describe('evidenced source adapters (synthetic input only)', () => {
+      7|   it('retains exact cumulative counters and their subset semantics', (…
+      8|     expect(parseAppServerUsage(fixtures[1], 'fixture-alpha')).toMatchO…
+       |                                                               ^
+      9|       status: 'reported', sessionId: 'fixture-alpha', scope: 'thread',
+     10|       aggregation: 'cumulative-snapshot', counters: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/15]⎯
+
+ FAIL  tests/adapters.test.ts > evidenced source adapters (synthetic input only) > never passes another thread’s usage to the requested session
+AssertionError: expected null to match object { status: 'unknown', …(1) }
+
+- Expected:
+{
+  "reason": "session-mismatch",
+  "status": "unknown",
+}
+
++ Received:
+null
+
+ ❯ tests/adapters.test.ts:17:62
+     15|   });
+     16|   it('never passes another thread’s usage to the requested session', (…
+     17|     expect(parseAppServerUsage(fixtures[0], 'fixture-beta')).toMatchOb…
+       |                                                              ^
+     18|     expect(JSON.stringify(parseAppServerUsage(fixtures[0], 'fixture-be…
+     19|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/15]⎯
+
+ FAIL  tests/adapters.test.ts > evidenced source adapters (synthetic input only) > preserves unavailable input as unknown: null
+ FAIL  tests/adapters.test.ts > evidenced source adapters (synthetic input only) > preserves unavailable input as unknown: {}
+ FAIL  tests/adapters.test.ts > evidenced source adapters (synthetic input only) > preserves unavailable input as unknown: {"method":"future/usage"}
+ FAIL  tests/adapters.test.ts > evidenced source adapters (synthetic input only) > preserves unavailable input as unknown: {"method":"thread/tokenUsage/updated","params":{"threadId":"fixture-alpha","tokenUsage":null}}
+AssertionError: expected null to match object { status: 'unknown' }
+
+- Expected:
+{
+  "status": "unknown",
+}
+
++ Received:
+null
+
+ ❯ tests/adapters.test.ts:21:57
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/15]⎯
+
+ FAIL  tests/adapters.test.ts > evidenced source adapters (synthetic input only) > rejects invalid counter -1
+ FAIL  tests/adapters.test.ts > evidenced source adapters (synthetic input only) > rejects invalid counter 1.2
+ FAIL  tests/adapters.test.ts > evidenced source adapters (synthetic input only) > rejects invalid counter 9007199254740992
+ FAIL  tests/adapters.test.ts > evidenced source adapters (synthetic input only) > rejects invalid counter 2200
+AssertionError: expected null to match object { status: 'unknown', …(1) }
+
+- Expected:
+{
+  "reason": "invalid-source-shape",
+  "status": "unknown",
+}
+
++ Received:
+null
+
+ ❯ tests/adapters.test.ts:26:57
+     24|     const input = structuredClone(fixtures[1]!);
+     25|     Object.assign(input.params.tokenUsage.total, { inputTokens: value …
+     26|     expect(parseAppServerUsage(input, 'fixture-alpha')).toMatchObject(…
+       |                                                         ^
+     27|   });
+     28|   it('rejects missing input rather than estimating from text', () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/15]⎯
+
+ FAIL  tests/adapters.test.ts > evidenced source adapters (synthetic input only) > rejects missing input rather than estimating from text
+AssertionError: expected null to match object { status: 'unknown' }
+
+- Expected:
+{
+  "status": "unknown",
+}
+
++ Received:
+null
+
+ ❯ tests/adapters.test.ts:32:57
+     30|     Reflect.deleteProperty(input.params.tokenUsage.total, 'inputTokens…
+     31|     Object.assign(input.params, { text: 'a'.repeat(10000) });
+     32|     expect(parseAppServerUsage(input, 'fixture-alpha')).toMatchObject(…
+       |                                                         ^
+     33|   });
+     34|   it('rejects inconsistent cached input subsets', () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/15]⎯
+
+ FAIL  tests/adapters.test.ts > evidenced source adapters (synthetic input only) > rejects inconsistent cached input subsets
+AssertionError: expected null to match object { status: 'unknown' }
+
+- Expected:
+{
+  "status": "unknown",
+}
+
++ Received:
+null
+
+ ❯ tests/adapters.test.ts:37:57
+     35|     const input = structuredClone(fixtures[0]!);
+     36|     input.params.tokenUsage.total.cachedInputTokens = 901;
+     37|     expect(parseAppServerUsage(input, 'fixture-alpha')).toMatchObject(…
+       |                                                         ^
+     38|   });
+     39|   it('extracts only the documented hook identity, never a transcript p…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/15]⎯
+
+ FAIL  tests/adapters.test.ts > evidenced source adapters (synthetic input only) > extracts only the documented hook identity, never a transcript path or content
+AssertionError: expected null to deeply equal { sessionId: 'fixture-alpha', …(1) }
+
+- Expected:
+{
+  "eventName": "SessionStart",
+  "sessionId": "fixture-alpha",
+}
+
++ Received:
+null
+
+ ❯ tests/adapters.test.ts:40:75
+     38|   });
+     39|   it('extracts only the documented hook identity, never a transcript p…
+     40|     expect(parseHookIdentity({ ...hook, prompt: 'sk-synthetic-secret' …
+       |                                                                           ^
+     41|   });
+     42|   it('does not accept invented hook or rollout shapes', () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/15]⎯
+
+ FAIL  tests/adapters.test.ts > evidenced source adapters (synthetic input only) > does not accept invented hook or rollout shapes
+AssertionError: expected null to match object { status: 'unknown' }
+
+- Expected:
+{
+  "status": "unknown",
+}
+
++ Received:
+null
+
+ ❯ tests/adapters.test.ts:45:107
+     43|     expect(parseHookIdentity({ sessionId: 'fixture-alpha', event: 'sta…
+     44|     expect(parseHookIdentity({ ...hook, hook_event_name: 'FutureEvent'…
+     45|     expect(parseAppServerUsage({ type: 'event_msg', payload: { type: '…
+       |                                                                                                           ^
+     46|   });
+     47| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/15]⎯
+
+ FAIL  tests/contracts.test.ts > v1 contracts > accepts explicit unknown usage, timing and causality without zeros
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/contracts.test.ts:18:58
+     16| describe('v1 contracts', () => {
+     17|   it('accepts explicit unknown usage, timing and causality without zer…
+     18|     expect(EventEnvelopeSchema.safeParse(event).success).toBe(true);
+       |                                                          ^
+     19|     expect(UsageObservationSchema.safeParse(unknownUsage).success).toB…
+     20|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/15]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  15 failed | 3 passed (18)
+   Start at  19:11:58
+   Duration  213ms (transform 41%, import 39%, tests 14%, worker 5%)
+
+[ELIFECYCLE] Test failed. See above for more details.

@@ -1,0 +1,104 @@
+$ vitest run
+
+ RUN  v5.0.5 /Users/nozilla/Documents/Codex/2026-10-30/sites-plugin-sites-openai-curated-remote-2/outputs/session-lens
+
+ ❯ tests/demo.test.ts (4 tests | 4 failed) 8ms
+   ❯ fixture sessions (4)
+     × isolates two independently advanced sessions 5ms
+     × refresh returns new events, does not sum cumulative usage or mutate reads 1ms
+     × rejects real session IDs, has no implicit current session, and opts into no collection 1ms
+     × does not share state between server instances 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/demo.test.ts > fixture sessions > isolates two independently advanced sessions
+AssertionError: expected null to match object { sessionId: 'fixture-alpha', …(1) }
+
+- Expected:
+{
+  "revision": 1,
+  "sessionId": "fixture-alpha",
+}
+
++ Received:
+null
+
+ ❯ tests/demo.test.ts:11:19
+      9|       Promise.resolve().then(() => store.read('fixture-beta')),
+     10|     ]);
+     11|     expect(alpha).toMatchObject({ sessionId: 'fixture-alpha', revision…
+       |                   ^
+     12|     expect(beta).toMatchObject({ sessionId: 'fixture-beta', revision: …
+     13|     expect(JSON.stringify(beta)).not.toContain('fixture-alpha');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/demo.test.ts > fixture sessions > refresh returns new events, does not sum cumulative usage or mutate reads
+AssertionError: expected null to match object { revision: +0, …(2) }
+
+- Expected:
+{
+  "events": [
+    Anything,
+  ],
+  "revision": 0,
+  "usage": {
+    "counters": {
+      "totalTokens": 1000,
+    },
+  },
+}
+
++ Received:
+null
+
+ ❯ tests/demo.test.ts:17:41
+     15|   it('refresh returns new events, does not sum cumulative usage or mut…
+     16|     const store = new DemoStore();
+     17|     expect(store.read('fixture-alpha')).toMatchObject({ revision: 0, e…
+       |                                         ^
+     18|     store.advance('fixture-alpha');
+     19|     const refreshed = store.read('fixture-alpha');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/demo.test.ts > fixture sessions > rejects real session IDs, has no implicit current session, and opts into no collection
+AssertionError: expected [Function] to throw an error
+ ❯ tests/demo.test.ts:26:54
+     24|   it('rejects real session IDs, has no implicit current session, and o…
+     25|     const store = new DemoStore();
+     26|     expect(() => store.read('unrecognized-real-id')).toThrow();
+       |                                                      ^
+     27|     expect(store.read('fixture-alpha')).toMatchObject({ mode: 'synthet…
+     28|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/demo.test.ts > fixture sessions > does not share state between server instances
+AssertionError: expected null to match object { revision: +0 }
+
+- Expected:
+{
+  "revision": 0,
+}
+
++ Received:
+null
+
+ ❯ tests/demo.test.ts:32:51
+     30|     const first = new DemoStore();
+     31|     first.advance('fixture-alpha');
+     32|     expect(new DemoStore().read('fixture-alpha')).toMatchObject({ revi…
+       |                                                   ^
+     33|   });
+     34| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  4 failed | 18 passed (22)
+   Start at  19:12:37
+   Duration  167ms (import 43%, transform 39%, tests 13%, worker 5%)
+
+[ELIFECYCLE] Test failed. See above for more details.

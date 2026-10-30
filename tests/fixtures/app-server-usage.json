@@ -1,0 +1,24 @@
+[
+  {
+    "method": "thread/tokenUsage/updated",
+    "params": {
+      "threadId": "fixture-alpha", "turnId": "fixture-turn-1",
+      "tokenUsage": {
+        "total": { "totalTokens": 1000, "inputTokens": 900, "cachedInputTokens": 400, "cacheWriteInputTokens": 0, "outputTokens": 100, "reasoningOutputTokens": 25 },
+        "last": { "totalTokens": 1000, "inputTokens": 900, "cachedInputTokens": 400, "cacheWriteInputTokens": 0, "outputTokens": 100, "reasoningOutputTokens": 25 },
+        "modelContextWindow": 128000
+      }
+    }
+  },
+  {
+    "method": "thread/tokenUsage/updated",
+    "params": {
+      "threadId": "fixture-alpha", "turnId": "fixture-turn-2",
+      "tokenUsage": {
+        "total": { "totalTokens": 2500, "inputTokens": 2200, "cachedInputTokens": 1000, "cacheWriteInputTokens": 0, "outputTokens": 300, "reasoningOutputTokens": 75 },
+        "last": { "totalTokens": 1500, "inputTokens": 1300, "cachedInputTokens": 600, "cacheWriteInputTokens": 0, "outputTokens": 200, "reasoningOutputTokens": 50 },
+        "modelContextWindow": 128000
+      }
+    }
+  }
+]

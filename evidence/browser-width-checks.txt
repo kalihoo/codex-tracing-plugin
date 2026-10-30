@@ -1,0 +1,4 @@
+### Ran Playwright code
+```js
+await (async (page) => { const rows = []; for (const width of [360,420,720,800]) { await page.setViewportSize({width,height:1000}); await page.screenshot({path:'evidence/ui-'+width+'.png',fullPage:true}); rows.push(await page.evaluate(() => ({width:innerWidth,documentWidth:document.documentElement.scrollWidth,overflow:document.documentElement.scrollWidth>innerWidth,buttons:Array.from(document.querySelectorAll('button')).map(b=>({name:b.textContent,visible:b.getBoundingClientRect().width>0}))}))); } console.log(JSON.stringify(rows)); })(page);
+```

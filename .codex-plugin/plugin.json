@@ -1,0 +1,9 @@
+{
+  "name": "session-lens",
+  "version": "0.1.0-l0",
+  "description": "Local synthetic Session Lens L0 protocol demo; host feasibility gates remain blocked.",
+  "requires_local_executor": true,
+  "mcpServers": "./.mcp.json",
+  "hooks": "./hooks/hooks.json",
+  "interface": { "displayName": "Session Lens (L0 demo)", "shortDescription": "Synthetic session inspection; collection off" }
+}

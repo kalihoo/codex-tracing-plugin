@@ -1,0 +1,137 @@
+$ vitest run
+
+ RUN  v5.0.5 /Users/nozilla/Documents/Codex/2026-10-30/sites-plugin-sites-openai-curated-remote-2/outputs/session-lens
+
+ ❯ tests/ui.test.tsx (5 tests | 5 failed) 18ms
+   ❯ fixture UI (5)
+     × refreshes the bound synthetic session after a new event arrives 8ms
+     × rejects mismatched, malformed or regressing updates without losing the bound snapshot 2ms
+     × does not call a tool without an explicit initial fixture binding 0ms
+     × escapes malicious content and renders unavailable usage explicitly 6ms
+     × labels cached input and reasoning as subsets of cumulative thread totals 1ms
+ ❯ tests/server.test.ts (3 tests | 3 failed) 11ms
+   ❯ real MCP protocol, synthetic data (3)
+     × advertises a resource-linked tool and a self-contained MCP Apps resource 9ms
+     × round-trips independent session refresh over tools/call 1ms
+     × refuses host session identifiers and does not expose a collector 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/server.test.ts > real MCP protocol, synthetic data > advertises a resource-linked tool and a self-contained MCP Apps resource
+ FAIL  tests/server.test.ts > real MCP protocol, synthetic data > round-trips independent session refresh over tools/call
+ FAIL  tests/server.test.ts > real MCP protocol, synthetic data > refuses host session identifiers and does not expose a collector
+McpError: MCP error -32601: Method not found
+ ❯ McpError.fromError node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.2_zod@4.3.6/node_modules/@modelcontextprotocol/sdk/src/types.ts:2330:16
+ ❯ Client._onresponse node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.2_zod@4.3.6/node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:963:36
+ ❯ _transport.onmessage node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.2_zod@4.3.6/node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:636:22
+ ❯ InMemoryTransport.send node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.2_zod@4.3.6/node_modules/@modelcontextprotocol/sdk/src/inMemory.ts:58:34
+ ❯ Server._onrequest node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.2_zod@4.3.6/node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:750:23
+ ❯ _transport.onmessage node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.2_zod@4.3.6/node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:638:22
+ ❯ InMemoryTransport.send node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.2_zod@4.3.6/node_modules/@modelcontextprotocol/sdk/src/inMemory.ts:58:34
+ ❯ node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.2_zod@4.3.6/node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:1281:33
+ ❯ Client.request node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.2_zod@4.3.6/node_modules/@modelcontextprotocol/sdk/src/shared/protocol.ts:1135:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  tests/ui.test.tsx > fixture UI > refreshes the bound synthetic session after a new event arrives
+AssertionError: expected [] to deeply equal [ 'read_demo:fixture-alpha' ]
+
+- Expected
++ Received
+
+- [
+-   "read_demo:fixture-alpha",
+- ]
++ []
+
+ ❯ tests/ui.test.tsx:15:19
+     13|     store.advance('fixture-alpha');
+     14|     await controller.refresh();
+     15|     expect(calls).toEqual(['read_demo:fixture-alpha']);
+       |                   ^
+     16|     expect(controller.current).toMatchObject({ revision: 1, events: [e…
+     17|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  tests/ui.test.tsx > fixture UI > rejects mismatched, malformed or regressing updates without losing the bound snapshot
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ tests/ui.test.tsx:22:39
+     20|     const controller = new DemoController(async () => ({ structuredCon…
+     21|     controller.receive({ structuredContent: store.advance('fixture-alp…
+     22|     await expect(controller.refresh()).rejects.toThrow();
+       |                                       ^
+     23|     expect(() => controller.receive({ structuredContent: store.read('f…
+     24|     expect(controller.current).toMatchObject({ sessionId: 'fixture-alp…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  tests/ui.test.tsx > fixture UI > does not call a tool without an explicit initial fixture binding
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ tests/ui.test.tsx:30:39
+     28|     let calls = 0;
+     29|     const controller = new DemoController(async () => { calls++; retur…
+     30|     await expect(controller.refresh()).rejects.toThrow();
+       |                                       ^
+     31|     expect(calls).toBe(0);
+     32|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  tests/ui.test.tsx > fixture UI > escapes malicious content and renders unavailable usage explicitly
+AssertionError: expected '<div></div>' to contain '&lt;img'
+
+Expected: "&lt;img"
+Received: "<div></div>"
+
+ ❯ tests/ui.test.tsx:37:18
+     35|     snapshot.events[0]!.label = '<img src=x onerror="alert(1)"><script…
+     36|     const html = renderToStaticMarkup(<SessionLensView snapshot={snaps…
+     37|     expect(html).toContain('&lt;img');
+       |                  ^
+     38|     expect(html).not.toContain('<script>');
+     39|     expect(html).not.toContain('<img');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  tests/ui.test.tsx > fixture UI > labels cached input and reasoning as subsets of cumulative thread totals
+AssertionError: expected '<div></div>' to contain 'Cumulative thread snapshot'
+
+Expected: "Cumulative thread snapshot"
+Received: "<div></div>"
+
+ ❯ tests/ui.test.tsx:46:18
+     44|   it('labels cached input and reasoning as subsets of cumulative threa…
+     45|     const html = renderToStaticMarkup(<SessionLensView snapshot={new D…
+     46|     expect(html).toContain('Cumulative thread snapshot');
+       |                  ^
+     47|     expect(html).toContain('subset');
+     48|     expect(html).toContain('Host gates unverified');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+
+ Test Files  2 failed | 3 passed (5)
+      Tests  8 failed | 22 passed (30)
+   Start at  19:13:36
+   Duration  297ms (import 67%, transform 20%, tests 11%, worker 3%)
+
+[ELIFECYCLE] Test failed. See above for more details.
