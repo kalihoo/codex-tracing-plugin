@@ -36,6 +36,7 @@ beforeAll(() => {
   for (const folder of ['dist', 'evidence']) mkdirSync(join(directory, folder));
   const synthetic = join(directory, 'dist', 'synthetic.js');
   writeFileSync(synthetic, '// Synthetic archive test payload only.\n');
+  writeFileSync(join(directory, 'dist', '._synthetic.js'), 'Synthetic AppleDouble sidecar only.\n');
   if (process.platform === 'darwin') {
     const result = spawnSync('xattr', ['-w', 'com.sessionlens.synthetic', 'fixture-only', synthetic]);
     xattrAdded = result.status === 0;

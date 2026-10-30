@@ -1,13 +1,13 @@
 import { cp, mkdir, rm } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
-import { resolve } from 'node:path';
+import { basename, resolve } from 'node:path';
 import { writeThirdPartyNotices } from './generate-third-party-notices.mjs';
 writeThirdPartyNotices();
 const stage = resolve('work/package/session-lens');
 await rm(stage, { recursive: true, force: true });
 await mkdir(stage, { recursive: true });
 for (const file of ['plugin.json', 'mcp.json', '.codex-plugin', '.mcp.json', 'hooks', 'dist', 'README.md', 'IMPLEMENTATION_PLAN.md', 'compatibility.json', 'evidence', 'THIRD_PARTY_NOTICES.md']) {
-  await cp(file, resolve(stage, file), { recursive: true });
+  await cp(file, resolve(stage, file), { recursive: true, filter: (source) => !basename(source).startsWith('._') });
 }
 // macOS bsdtar: neutralize ownership without changing filesystem ownership,
 // and suppress both pax xattrs and copyfile/AppleDouble metadata.
