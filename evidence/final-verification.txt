@@ -3,18 +3,20 @@ Checked: 2026-10-31
 
 Build and tests
 - `pnpm package:local` runs strict TypeScript checking, builds the UI and bundled MCP server, runs Vitest, exercises the bundled stdio MCP server without node_modules, and creates the sanitized local archive.
-- Expected current test result: 9 files, 61 tests passed.
+- Current test result: 9 files, 61 tests passed.
 - The stdio smoke sends a synthetic host-bound lifecycle call, verifies opt-in, event refresh, and two-thread isolation, and confirms raw identifiers and payload content are absent from responses and disk.
 - This synthetic smoke is not evidence of a real Codex desktop hook invocation.
+- `pnpm probe:host-hook` completed an ephemeral App Server turn with the plugin connected and collection enabled, but produced zero lifecycle events. A direct `record_prompt_submit` call in that same host context produced one event. The probe observed one token-usage notification, then removed its temporary plugin data; it exits nonzero while the lifecycle hook event is missing.
 
 Local plugin install
 - `codex plugin list --json` reports `session-lens@session-lens-local` version `0.1.3-l0`, installed and enabled from the sanitized package at `work/package/session-lens`.
-- The desktop app has not been independently confirmed to have reloaded this package. The user reports that `/hooks` showed no Session Lens entry or “not installed”; no new message had been sent after enabling collection, so no real event was expected yet.
-- The hook definition has not been reviewed/trusted in the desktop UI and its real invocation, injected thread metadata, and two-chat event isolation remain unverified.
+- This is a CLI profile install only. The repo-scoped desktop marketplace is `.agents/plugins/marketplace.json`; its sanitized source is available at `./work/package/session-lens`. The user has not confirmed opening the repository in Codex desktop and installing from Plugins Directory.
+- The user most recently reports that `/hooks` showed no Session Lens entry or “not installed” and that no new prompt had yet been sent after enabling collection. The desktop install/reload and hook trust state therefore remain unverified; the missing trigger explains why that check could not produce a fresh event.
+- Official install guidance is recorded in `evidence/l0-appserver-mcp-hook-probe-2026-10-31.md`: open the repository in Codex desktop, restart, install from the **Session Lens local testing** source in Plugins Directory, review/trust the hook, enable collection, and send a new prompt. Real desktop invocation, side-panel refresh, injected thread metadata, and two-chat event isolation remain unverified. The App Server probe is not desktop evidence.
 
 L0 limitations
 - No user message or tool input/output is captured or persisted.
 - Real desktop token usage has not reached Session Lens. Token counts remain unavailable; no text-based estimate is used.
 - Therefore L0 remains blocked and L1–L4 must not be treated as accepted.
 
-Relevant host contract: https://learn.chatgpt.com/docs/hooks. MCP tool hooks call an already-connected MCP server and require hook review/trust; this local test validates only the plugin-side implementation and synthetic protocol path.
+Relevant host contract: https://learn.chatgpt.com/docs/hooks. MCP tool hooks call an already-connected MCP server and require hook review/trust; the App Server probe validates only the CLI-hosted connection and event tool path.

@@ -12,6 +12,7 @@
     "start": "node dist/server.mjs",
     "smoke": "node scripts/smoke.mjs",
     "probe:host-isolation": "node scripts/host-thread-isolation-probe.mjs",
+    "probe:host-hook": "node scripts/host-mcp-hook-probe.mjs",
     "check": "pnpm build && pnpm test",
     "package:local": "pnpm check && pnpm smoke && node scripts/package-local.mjs"
   },

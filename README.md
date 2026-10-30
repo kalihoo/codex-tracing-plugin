@@ -33,19 +33,24 @@ python3 -m http.server 4175 --bind 127.0.0.1 --directory work/preview
 
 浏览 `http://127.0.0.1:4175/` 可查看 `fixture-alpha`，`http://127.0.0.1:4175/?fixture=beta` 可查看用量未知的示例。该网页是独立预览，不是 Codex MCP Apps 宿主。
 
-## 安装到本地 Codex
+## 安装到本地 Codex 桌面端
 
-先运行 `pnpm package:local` 生成经过净化的构建目录，然后将仓库注册为本地 marketplace 并安装：
+先运行 `pnpm package:local`，生成经过净化的 `work/package/session-lens`。仓库中的 `.agents/plugins/marketplace.json` 已将本地插件目录指向这个构建结果。该目录是**仓库级** marketplace：
 
-```sh
-codex plugin marketplace add /absolute/path/to/session-lens
-codex plugin add session-lens@session-lens-local
-codex plugin list --json
-```
+1. 在 Codex 桌面端打开本仓库根目录 `session-lens`，并重启 Codex 桌面端。
+2. 打开 **Plugins Directory**，选择 **Session Lens local testing** 来源并安装 Session Lens。
+3. 在新聊天中打开 `open_session`。在 `/hooks` 中确认 `UserPromptSubmit` 已出现，审阅并信任当前 hook 定义。
+4. 打开侧栏、手动开启该聊天采集，再发送一条新的无敏感测试消息并刷新面板。
 
-升级本地安装时，先运行 `codex plugin remove session-lens@session-lens-local`，再重新运行 `codex plugin add session-lens@session-lens-local`。重启 Codex 桌面端后，在 `/hooks` 中审阅并信任当前的 `UserPromptSubmit` 定义；再打开 Session Lens、单独开启该聊天的采集、发送一条新测试消息并刷新。
+更新插件时先运行 `pnpm package:local`，然后重启桌面端；如果已安装副本仍显示旧版本，请在 Plugins Directory 卸载后重新安装。每个测试聊天都要分别开启采集并发送一条新消息。没有在开启后发送新消息时，事件数保持为零是预期结果；如果插件在 Plugins Directory 中未安装，或 `/hooks` 没有 `UserPromptSubmit`，先完成桌面端安装与 hook 信任，再测事件。
 
-安装或更新后，重启 Codex 桌面端并在**新聊天**中打开 `open_session` 入口。Codex 会要求用户审阅插件 hook；只有用户确认信任这份当前 hook 定义后，才能验证其是否运行。随后需在侧栏手动开启当前会话采集，并提交一条无敏感内容的测试消息，再刷新面板。验证中文版本时，请先用当前代码重新运行 `pnpm package:local`，再重新加载或安装更新后的本地插件。插件市场目录只指向净化后的 `work/package/session-lens`，不会把 `.git`、`node_modules`、源代码测试目录或浏览器日志带入插件缓存。
+**CLI 安装不是桌面端安装的替代品。** `codex plugin marketplace add` 和 `codex plugin add` 管理的是 CLI marketplace/profile；CLI 中列出插件或 hook，不证明 Codex 桌面端已安装并加载该插件。官方打包文档要求含生命周期 hook 的插件通过 Codex 桌面端手动安装；repo marketplace 需从已打开的仓库中进入 Plugins Directory。插件本地安装后，Codex 仍要求用户审阅并信任 hook。此 marketplace 只指向净化后的构建结果，不会把 `.git`、`node_modules`、测试目录或浏览器日志带入插件缓存。
+
+可用 `codex plugin marketplace add` / `codex plugin add` 单独做 CLI 侧的兼容性诊断，但不要据此记录桌面安装或桌面 hook 验收通过。验证中文版本时，也要先重新运行 `pnpm package:local`，再从桌面端本地来源更新插件。
+
+### 本地 App Server hook 诊断
+
+`pnpm probe:host-hook` 会在 Codex 本地 App Server 中启动一次临时线程，开启该线程的采集并提交一条简短测试消息。它会使用一次性 `--dangerously-bypass-hook-trust`，不会写入持久信任；事件数据写入临时目录并在退出时删除。该命令会发起一次真实 Codex 模型请求，只应由开发者手动运行。它不验证桌面侧栏、桌面 hook 信任或桌面会话隔离。
 
 ### 提供的工具
 
@@ -65,6 +70,6 @@ codex plugin list --json
 
 本次界面本地化使用简体中文作为默认语言，并提供英语切换。完整的 UI 与浏览器宽度验证记录见[中文界面验收记录](evidence/i18n-browser-checks.md)。独立浏览器验证只能证明预览 UI 的文案和响应式布局，不能代替 Codex 桌面端证据。
 
-技术栈版本、宿主实测范围、事件/Token 来源和 L0 阻塞项见[兼容性记录](compatibility.json)、[宿主复测记录](evidence/l0-host-recheck-2026-10-30.md)与[本地 Codex 测试记录](evidence/local-codex-host-test.json)。官方资料：[Codex App Server](https://learn.chatgpt.com/docs/app-server)、[Hooks](https://learn.chatgpt.com/docs/hooks)、[插件打包](https://developers.openai.com/plugins/build/plugins)、[MCP 扩展](https://developers.openai.com/plugins/build/extensions)。
+技术栈版本、宿主实测范围、事件/Token 来源和 L0 阻塞项见[兼容性记录](compatibility.json)、[宿主复测记录](evidence/l0-host-recheck-2026-10-30.md)与[本地 Codex 测试记录](evidence/local-codex-host-test.json)。官方资料：[Codex App Server](https://learn.chatgpt.com/docs/app-server)、[Hooks](https://learn.chatgpt.com/docs/hooks)、[插件打包与桌面安装](https://developers.openai.com/plugins/build/plugins)、[MCP 扩展](https://developers.openai.com/plugins/build/extensions)。
 
 `THIRD_PARTY_NOTICES.md` 收录生产依赖所需的许可证和版权文本。变更依赖后，请运行 `node scripts/generate-third-party-notices.mjs` 并随锁文件提交更新后的 notices。
