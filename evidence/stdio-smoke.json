@@ -5,6 +5,8 @@
   "bundledWithoutNodeModules": true,
   "sessions": 2,
   "isolated": true,
+  "codexThreadEntrypointAdvertised": true,
+  "actualHostSessionBinding": false,
   "refreshEventCounts": [
     1,
     2

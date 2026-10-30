@@ -12,6 +12,7 @@ describe('local-only plugin wiring', () => {
     expect(json('.codex-plugin/plugin.json')).toMatchObject({ name: 'session-lens', mcpServers: './.mcp.json', hooks: './hooks/hooks.json' });
     expect(json('mcp.json')).toMatchObject({ mcpServers: { session_lens: { type: 'stdio', command: 'node', args: ['${PLUGIN_ROOT}/dist/server.mjs'], cwd: '${PLUGIN_ROOT}' } } });
     expect(json('.mcp.json').mcpServers).toEqual(json('mcp.json').mcpServers);
+    expect(json('.agents/plugins/marketplace.json')).toMatchObject({ name: 'session-lens-local', plugins: [{ name: 'session-lens', source: { source: 'local', path: './work/package/session-lens' } }] });
   });
   it.each(['not-json', '{"session_id":"fixture-alpha","prompt":"sk-synthetic"}', ''])('hook fails open without input parsing, output, or persistence: %s', (input) => {
     const temp = mkdtempSync(join(tmpdir(), 'session-lens-hook-test-'));

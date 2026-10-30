@@ -26,12 +26,18 @@ async function run(action: 'refresh' | 'advance') {
   render();
   try {
     await controller[action]();
-    status = `Fixture revision ${controller.current?.revision ?? 'unknown'} · host gates unverified`;
+    const revision = controller.current?.mode === 'synthetic-fixture' ? controller.current.revision : 'unknown';
+    status = `Fixture revision ${revision} · host gates unverified`;
   } catch { status = 'Fixture refresh unavailable. Last valid snapshot retained.'; }
   finally { busy = false; render(); }
 }
 app.ontoolresult = (result) => {
-  try { controller.receive(result); status = 'Synthetic fixture ready · host gates unverified'; }
+  try {
+    controller.receive(result);
+    status = controller.current?.mode === 'host-unbound'
+      ? 'Codex thread panel opened · session identity unavailable · collection off'
+      : 'Synthetic fixture ready · host gates unverified';
+  }
   catch { status = 'Rejected invalid or mismatched fixture snapshot.'; }
   render();
 };

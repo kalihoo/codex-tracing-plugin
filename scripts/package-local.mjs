@@ -16,4 +16,4 @@ const packed = spawnSync('tar', ['--uid', '0', '--gid', '0', '--uname', 'root', 
   '-czf', resolve('session-lens-l0.tgz'), '-C', resolve('work/package'), 'session-lens'],
 { stdio: 'inherit', env: { ...process.env, COPYFILE_DISABLE: '1' } });
 if (packed.status !== 0) throw new Error('Local plugin archive failed');
-console.log('Created session-lens-l0.tgz. Requires Node 24 on PATH. Not installed; host L0 gates remain blocked.');
+console.log('Created session-lens-l0.tgz and sanitized local source at work/package/session-lens. Requires Node 24 on PATH. Does not restart Codex or trust hooks.');

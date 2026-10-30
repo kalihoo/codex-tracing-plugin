@@ -5,6 +5,31 @@ import { DemoController } from '../src/ui/controller';
 import { SessionLensView } from '../src/ui/view';
 
 describe('fixture UI', () => {
+  it('keeps the host waiting state distinct from the synthetic preview', () => {
+    const html = renderToStaticMarkup(<SessionLensView snapshot={null} status="Waiting for MCP Apps host" busy={false} refresh={() => {}} advance={() => {}} />);
+    expect(html).toContain('等待 Codex 宿主响应');
+    expect(html).toContain('不可用');
+    expect(html).not.toContain('Synthetic fixture');
+    expect(html).not.toContain('fixture-alpha');
+  });
+
+  it('renders the native thread entrypoint as unbound and unavailable, never as fixture usage', async () => {
+    const result = {
+      structuredContent: { schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable', collectionEnabled: false, coverage: 'unavailable', events: [] },
+    };
+    let calls = 0;
+    const controller = new DemoController(async () => { calls++; return {}; });
+    expect(() => controller.receive(result)).not.toThrow();
+    await expect(controller.refresh()).rejects.toThrow('No fixture session is open');
+    const html = renderToStaticMarkup(<SessionLensView snapshot={controller.current} status="Codex entrypoint opened" busy={false} refresh={() => {}} advance={() => {}} />);
+    expect(html).toContain('未绑定当前会话');
+    expect(html).toContain('Collection off');
+    expect(html).toContain('不可用');
+    expect(html).not.toContain('fixture-alpha');
+    expect(html).not.toContain('1000');
+    expect(calls).toBe(0);
+  });
+
   it('refreshes the bound synthetic session after a new event arrives', async () => {
     const store = new DemoStore();
     const calls: string[] = [];

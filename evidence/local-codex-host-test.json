@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "checkedOn": "2026-10-30",
+  "host": {
+    "codexCli": "0.162.0-alpha.17.2",
+    "macOS": "26.5.1",
+    "architecture": "arm64"
+  },
+  "localPlugin": {
+    "marketplaceRegistered": true,
+    "installed": true,
+    "enabled": true,
+    "source": "sanitized build output",
+    "installedCacheContains": {
+      "gitDirectory": false,
+      "nodeModules": false,
+      "playwrightTemporaryRecords": false
+    },
+    "hooksTrusted": false
+  },
+  "mcpToolCall": {
+    "client": "codex exec --ephemeral",
+    "tool": "session_lens.open_session",
+    "arguments": {},
+    "status": "passed",
+    "result": {
+      "mode": "host-unbound",
+      "sessionBinding": "unavailable",
+      "collectionEnabled": false,
+      "events": []
+    },
+    "mcpAppRenderedByCli": false
+  },
+  "desktopSessionProbe": {
+    "method": "codex app-server thread/read",
+    "requestedThreadMatched": true,
+    "responseHadTurnsField": true,
+    "turnContentPrintedOrPersisted": false,
+    "resumeAttempt": "rejected: thread already has an active writer",
+    "tokenUsageNotificationObserved": false
+  },
+  "realUsageObservation": {
+    "source": "codex exec turn.completed usage",
+    "scope": "one ephemeral local Codex CLI turn",
+    "requestUsedConfiguredCodexModelService": true,
+    "pluginCanReadParentThreadUsage": false,
+    "inputTokens": 37088,
+    "cachedInputTokens": 31616,
+    "outputTokens": 243,
+    "reasoningOutputTokens": 29
+  },
+  "appServerIsolatedTurn": {
+    "ephemeral": true,
+    "pluginServerLoaded": true,
+    "openSessionReturnedUnbound": true,
+    "turnStatus": "failed",
+    "errorCategory": "other",
+    "tokenUsageUpdates": 0,
+    "contentPersisted": false
+  },
+  "desktopSidePanel": {
+    "threadEntrypointAdvertised": true,
+    "renderedInCodexDesktop": false,
+    "reason": "The Codex native app surface was not accessible to the available UI automation; CLI does not render MCP Apps."
+  },
+  "collection": {
+    "enabled": false,
+    "userContentPersisted": false
+  }
+}

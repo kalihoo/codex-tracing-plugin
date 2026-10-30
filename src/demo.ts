@@ -16,6 +16,15 @@ export const DemoSnapshotSchema = z.strictObject({
 { message: 'Snapshot must contain only its requested session' });
 export type DemoSnapshot = z.infer<typeof DemoSnapshotSchema>;
 
+export const HostUnboundSnapshotSchema = z.strictObject({
+  schemaVersion: z.literal(1), mode: z.literal('host-unbound'),
+  sessionBinding: z.literal('unavailable'), collectionEnabled: z.literal(false),
+  coverage: z.literal('unavailable'), events: z.tuple([]),
+});
+export type HostUnboundSnapshot = z.infer<typeof HostUnboundSnapshotSchema>;
+export const SessionLensSnapshotSchema = z.discriminatedUnion('mode', [DemoSnapshotSchema, HostUnboundSnapshotSchema]);
+export type SessionLensSnapshot = z.infer<typeof SessionLensSnapshotSchema>;
+
 // Ephemeral fixtures only: no host discovery, user content or disk writes.
 export class DemoStore {
   private revisions: Record<DemoSessionId, number> = { 'fixture-alpha': 0, 'fixture-beta': 0 };

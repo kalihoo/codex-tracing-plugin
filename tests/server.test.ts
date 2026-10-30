@@ -18,6 +18,22 @@ async function connect() {
 }
 
 describe('real MCP protocol, synthetic data', () => {
+  it('advertises a Codex thread-side-panel entrypoint with an explicit unbound state', async () => {
+    const client = await connect();
+    const tool = (await client.listTools()).tools.find((item) => item.name === 'open_session');
+    expect(tool?._meta).toMatchObject({
+      ui: { resourceUri: 'ui://session-lens/l0-v1.html' },
+      'openai/ui': { entrypoints: [{ type: 'thread' }] },
+    });
+    expect(tool?.inputSchema).not.toHaveProperty('required');
+    const result = await client.callTool({ name: 'open_session', arguments: {} });
+    expect(result.structuredContent).toEqual({
+      schemaVersion: 1, mode: 'host-unbound', sessionBinding: 'unavailable',
+      collectionEnabled: false, coverage: 'unavailable', events: [],
+    });
+    expect(JSON.stringify(result.structuredContent)).not.toMatch(/fixture-alpha|inputTokens|outputTokens/);
+  });
+
   it('advertises a resource-linked tool and a self-contained MCP Apps resource', async () => {
     const client = await connect();
     const tools = await client.listTools();
@@ -38,6 +54,6 @@ describe('real MCP protocol, synthetic data', () => {
     const client = await connect();
     const result = await client.callTool({ name: 'open_demo', arguments: { sessionId: 'real-session' } });
     expect(result.isError).toBe(true);
-    expect((await client.listTools()).tools.map((tool) => tool.name).sort()).toEqual(['advance_demo', 'open_demo', 'read_demo']);
+    expect((await client.listTools()).tools.map((tool) => tool.name).sort()).toEqual(['advance_demo', 'open_demo', 'open_session', 'read_demo']);
   });
 });

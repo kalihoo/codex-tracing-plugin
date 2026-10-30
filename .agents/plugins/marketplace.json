@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/marketplace.schema.json",
+  "name": "session-lens-local",
+  "interface": {
+    "displayName": "Session Lens local testing"
+  },
+  "plugins": [
+    {
+      "name": "session-lens",
+      "source": {
+        "source": "local",
+        "path": "./work/package/session-lens"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

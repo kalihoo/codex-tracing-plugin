@@ -68,6 +68,10 @@ describe('actual local distributable', () => {
     expect(archive.members.filter((member) => member.name.split('/').some((part) => part.startsWith('._')))).toEqual([]);
     expect(archive.members.flatMap((member) => Object.keys(member.pax)).filter((key) => /xattr|com\.apple|acl/i.test(key))).toEqual([]);
   });
+  it('does not ship repository internals or transient browser records', () => {
+    const forbidden = new Set(['.git', '.playwright-cli', 'node_modules', 'tests', 'src', 'work']);
+    expect(archive.members.filter((member) => member.name.split('/').some((part) => forbidden.has(part)))).toEqual([]);
+  });
   it('contains full license and copyright notices for the complete installed production closure', () => {
     expect(archive.notices).not.toBeNull();
     const notices = archive.notices ?? '';

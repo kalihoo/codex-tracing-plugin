@@ -19,7 +19,12 @@ try {
   transport.stderr?.on('data', (chunk) => { stderr += String(chunk); });
   await client.connect(transport);
   const tools = await client.listTools();
-  assert.deepEqual(tools.tools.map((tool) => tool.name).sort(), ['advance_demo', 'open_demo', 'read_demo']);
+  assert.deepEqual(tools.tools.map((tool) => tool.name).sort(), ['advance_demo', 'open_demo', 'open_session', 'read_demo']);
+  const entrypoint = tools.tools.find((tool) => tool.name === 'open_session');
+  assert.deepEqual(entrypoint?._meta?.['openai/ui']?.entrypoints, [{ type: 'thread' }]);
+  const host = await client.callTool({ name: 'open_session', arguments: {} });
+  assert.deepEqual(host.structuredContent, { schemaVersion: 1, mode: 'host-unbound',
+    sessionBinding: 'unavailable', collectionEnabled: false, coverage: 'unavailable', events: [] });
   const read = async (name, sessionId) => {
     const result = await client.callTool({ name, arguments: { sessionId } });
     assert.equal(result.isError, undefined);
@@ -44,6 +49,7 @@ try {
   await writeFile('work/preview/index.html', html);
   const report = { schemaVersion: 1, status: 'passed', scope: 'local stdio MCP only',
     bundledWithoutNodeModules: true, sessions: 2, isolated: true,
+    codexThreadEntrypointAdvertised: true, actualHostSessionBinding: false,
     refreshEventCounts: [alpha0.events.length, alpha1.events.length],
     cumulativeTotals: [alpha0.usage.counters.totalTokens, alpha1.usage.counters.totalTokens],
     unknownUsagePreserved: true, uiResourceMimeType: resource.contents[0].mimeType,

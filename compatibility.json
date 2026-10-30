@@ -17,41 +17,49 @@
     "requirements": [
       {
         "id": "codex-mcp-app-side-panel", "status": "blocked",
-        "reason": "The local MCP server is not registered in the current Codex host. Manual plugin installation is outside this task; a right-side browser preview is available but is not an MCP Apps plugin surface. No persistent MCP Apps side panel has been demonstrated.",
-        "missingEvidence": "Actual Codex render of ui://session-lens/l0-v1.html in the requested side-panel surface."
+        "reason": "The plugin is installed and enabled from the local marketplace, and the Codex thread-entrypoint metadata is advertised. A Codex CLI MCP call succeeds, but CLI does not render MCP Apps and the desktop side panel has not been observed.",
+        "missingEvidence": "Actual Codex desktop render of ui://session-lens/l0-v1.html in the conversation side-panel surface."
       },
       {
         "id": "current-session-binding-and-two-session-isolation", "status": "blocked",
-        "reason": "Only explicit synthetic IDs are accepted. Real chat IDs, transcripts, hooks and host source streams were not accessed; no disposable chats were created.",
-        "missingEvidence": "Two concurrent real disposable Codex sessions bound to their own displayed events without leakage."
+        "reason": "The thread entrypoint receives empty arguments, so this plugin has no host conversation ID. The plugin returned an explicit unbound state. A separate App Server metadata probe matched the current thread, but resuming it failed with an active-writer conflict; no hook or transcript adapter exists yet.",
+        "missingEvidence": "Two concurrent disposable sessions bound by a verified supported source, with distinct events shown in their own plugin instances."
       },
       {
         "id": "live-host-event-refresh", "status": "blocked",
-        "reason": "Refresh and fixture advancement pass locally and in a Codex browser preview, but there is no authorized live host event source or subscription. No real lifecycle event reached the plugin UI.",
+        "reason": "Fixture refresh and advancement pass in the standalone preview. The local Codex MCP tool call returned no session events, and no real lifecycle event reached the plugin UI.",
         "missingEvidence": "A new real event from the bound chat visible after refresh in the actual plugin host surface."
       },
       {
         "id": "authoritative-real-token-counter", "status": "blocked",
-        "reason": "Installed CLI-generated types establish field shape, not a real reading. All parsed values are synthetic and no desktop thread usage stream was attached.",
-        "missingEvidence": "A host-reported input/output counter with documented source, session identity and thread scope."
+        "reason": "A real ephemeral `codex exec` turn emitted input/output counts in `turn.completed.usage`, but Session Lens cannot read that parent-thread event. The local App Server test loaded the plugin but its turn failed and emitted no `thread/tokenUsage/updated` notification.",
+        "missingEvidence": "A real host counter delivered to the Session Lens UI with documented source, matching session identity and scope."
       }
     ]
   },
   "localValidation": {
     "strictTypesAndBuild": "passed",
-    "vitest": { "status": "passed", "tests": 38, "files": 7 },
+    "vitest": { "status": "passed", "tests": 42, "files": 7 },
     "mcpInMemoryProtocol": "passed",
     "bundledStdioWithoutNodeModules": { "status": "passed", "evidence": "evidence/stdio-smoke.json" },
     "fixtureIsolation": { "sessions": 2, "status": "passed", "realHostEvidence": false },
     "cumulativeUsage": { "snapshots": [1000, 2500], "displayedLatest": 2500, "summed": false },
     "unknownUsageAndEscaping": "passed",
+    "localMarketplace": { "status": "registered", "sourceIsSanitizedBuild": true },
+    "codexCliPluginInstall": { "status": "installed-and-enabled", "cacheContainsRepositoryInternals": false, "hooksTrusted": false },
+    "codexCliMcpCall": { "status": "passed", "tool": "open_session", "returnedMode": "host-unbound", "collectionEnabled": false, "mcpAppUiRendered": false, "evidence": "evidence/local-codex-host-test.json" },
+    "codexAppServerMetadataProbe": { "status": "thread-id-match", "resumeStatus": "blocked-active-writer", "turnContentPersistedByProbe": false },
+    "codexCliTokenUsage": { "status": "observed-from-real-ephemeral-turn", "source": "codex exec turn.completed.usage", "scope": "one local Codex CLI turn", "pluginCanReadParentTurn": false, "testSentThroughCodexModelService": true, "evidence": "evidence/local-codex-host-test.json" },
+    "codexAppServerTokenUsageNotification": { "status": "not-observed", "reason": "isolated test turn failed before usage was emitted" },
+    "ephemeralTestSessionsStarted": 2,
     "browserPreview": { "status": "observed-by-coordinating-agent", "placement": "Codex right browser panel", "fixtureRevision": [0, 1], "eventCount": [1, 2], "totalTokens": [1000, 2500], "mcpAppsHostEvidence": false, "evidence": "evidence/codex-browser-observation.md" },
     "responsiveWidths": { "environment": "standalone Chromium", "requested": [360, 420, 720, 800], "evidence": "evidence/browser-results.txt", "actualCodexMcpWidthsVerified": false }
   },
   "sources": [
-    { "id": "codex-app-server", "version": "0.162.0-alpha.17.2", "shapeEvidence": "evidence/codex-0.162.0-alpha.17.2", "documentation": "https://learn.chatgpt.com/docs/app-server", "method": "thread/tokenUsage/updated", "scope": "thread", "aggregation": "cumulative-snapshot", "adapter": "fixture-only", "realObservation": false },
+    { "id": "codex-app-server", "version": "0.162.0-alpha.17.2", "shapeEvidence": "evidence/codex-0.162.0-alpha.17.2", "documentation": "https://learn.chatgpt.com/docs/app-server", "method": "thread/tokenUsage/updated", "scope": "thread", "aggregation": "cumulative-snapshot", "adapter": "fixture-only", "realObservation": false, "localProbe": "current thread metadata ID matched; resume rejected while the desktop owns an active writer" },
+    { "id": "codex-cli-turn-usage", "version": "0.162.0-alpha.17.2", "method": "turn.completed.usage", "scope": "ephemeral test turn", "fieldsObserved": ["input_tokens", "output_tokens", "cached_input_tokens", "reasoning_output_tokens"], "pluginAdapter": false, "evidence": "evidence/local-codex-host-test.json" },
     { "id": "codex-hooks", "documentation": "https://learn.chatgpt.com/docs/hooks", "adapter": "synthetic-identity-only", "liveHook": "not-trusted-or-installed", "transcriptPathRead": false },
     { "id": "rollout-jsonl", "stability": "unstable", "adapter": "not-implemented", "liveContentRead": false }
   ],
-  "safetyState": { "collectionEnabled": false, "userContentPersisted": false, "cloudServices": false, "accountRequired": false, "profileInstalled": false, "hooksTrusted": false, "codexConfigChanged": false, "realChatsCreated": false }
+  "safetyState": { "collectionEnabled": false, "userContentPersisted": false, "pluginCloudServices": false, "verificationUsedCodexModelService": true, "accountRequired": false, "profileInstalled": true, "hooksTrusted": false, "codexConfigChanged": true, "realChatsCreated": false, "ephemeralTestThreadsPersisted": false, "installedSourceContainsRepositoryInternals": false }
 }
