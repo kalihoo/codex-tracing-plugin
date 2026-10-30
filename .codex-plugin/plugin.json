@@ -1,9 +1,9 @@
 {
   "name": "session-lens",
   "version": "0.1.0-l0",
-  "description": "Local synthetic Session Lens L0 protocol demo; host feasibility gates remain blocked.",
+  "description": "面向 Codex 的 Session Lens L0 本地演示；当前仅验证入口与合成数据，不采集真实会话。",
   "requires_local_executor": true,
   "mcpServers": "./.mcp.json",
   "hooks": "./hooks/hooks.json",
-  "interface": { "displayName": "Session Lens (L0 demo)", "shortDescription": "Synthetic session inspection; collection off" }
+  "interface": { "displayName": "Session Lens（会话观察器 · L0）", "shortDescription": "查看 Codex 会话入口状态和合成数据；当前不采集真实会话内容" }
 }

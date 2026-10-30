@@ -1,10 +1,20 @@
-# Session Lens — L0 feasibility shell
+# Session Lens（会话观察器）— L0 接入验证原型
 
-**L0 gate: blocked.** This local plugin is a synthetic protocol/UI demo, not a session recorder. Tasks 2–4 have not started. See [compatibility.json](compatibility.json) for machine-readable gate results and [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for the scope.
+Session Lens 面向 Codex 用户，目标是在侧栏查看会话执行链路、任务耗时和 Token 用量，并导出离线 HTML 复盘报告。当前代码仍是 **L0 接入验证原型**：支持中文和英文界面切换，展示会话绑定状态与合成示例；真实会话事件采集、实时刷新、真实 Token 用量和报告导出尚未实现。请查看[兼容性与验收状态](compatibility.json)及[分层实施计划](IMPLEMENTATION_PLAN.md)。
 
-The first release targets Codex desktop on macOS. The observed environment is macOS **26.5.1 build 25F80 arm64**, Codex CLI **0.162.0-alpha.17.2**, Node **24.7.0**, pnpm **11.25.0**. The desktop bundle at `/Applications/ChatGPT.app` reports version **26.1007.71326**, build **20398**; this is the ChatGPT desktop bundle containing the Codex CLI, not an independently detected Codex application version.
+## 当前状态
 
-## Build and exercise locally
+- UI 默认使用简体中文，可在右上角切换英文；侧栏布局按 360–800px 适配。
+- 用户已确认在一个新建的本地 Codex 聊天中打开 `open_session` 后，Session Lens 面板实际显示。这个用户确认只证明入口和面板可见；没有保存独立截图，也不代表已接入实时事件或真实 Token 用量。
+- 插件能识别经 Codex MCP tool-call metadata 提供的当前 `threadId`，但不会显示或持久化该 ID，也不会采集会话内容。
+- 合成数据预览和协议刷新仅用于验证 UI 与 MCP 工具链路，不代表宿主采集能力。
+- **L0 尚未通过**：真实会话事件刷新、两个桌面会话的真实事件隔离及由宿主交付到面板的权威 Token 用量仍未验证。L1–L4 按计划保持门控。
+
+此原型不包含后台采集器、持久化数据库、团队或云服务、计费、工作流执行引擎，也不会读取 Codex transcript。生命周期 hook 是静默 no-op，且没有被信任；采集保持关闭。
+
+## 本地构建和检查
+
+要求 Node.js 24 与 pnpm 11。
 
 ```sh
 pnpm install --frozen-lockfile
@@ -13,13 +23,19 @@ pnpm smoke
 pnpm package:local
 ```
 
-`pnpm check` runs strict TypeScript checks, bundles the React/Vite UI and Node stdio server, and runs Vitest. `pnpm smoke` launches a copy of the bundle without `node_modules`, drives the real MCP protocol through the SDK, and writes the served UI to `work/preview/index.html`. It never opens a real chat or reads host state. `pnpm package:local` creates `session-lens-l0.tgz` with a self-contained server; Node 24 must be on the desktop launch environment's PATH.
+`pnpm check` 运行严格 TypeScript 检查、构建 UI 和 Node stdio 服务，并执行 Vitest。`pnpm smoke` 在没有 `node_modules` 的打包副本上通过真实 MCP 协议做合成数据冒烟测试，并生成 `work/preview/index.html`；它不会打开真实聊天或读取宿主状态。`pnpm package:local` 会生成 `session-lens-l0.tgz`。
 
-After installing the local plugin, run `pnpm probe:host-isolation` to verify thread binding against the installed Codex App Server. It creates two concurrent ephemeral threads, starts no model turn, prints only binding/status booleans and event counts, and does not persist thread IDs or content. This protocol probe does not render the MCP App UI.
+要查看独立合成预览，可运行：
 
-`node scripts/host-session-start-probe.mjs` checks whether a no-model App Server `thread/start` delivers a `SessionStart` hook in an isolated temporary `CODEX_HOME`. On the tested build it starts the ephemeral thread but observes no hook payload. A separate ephemeral CLI turn did deliver a real payload to a one-off field-presence-only hook; this consumed model tokens and did not exercise the installed plugin hook. See [the sanitized recheck evidence](evidence/l0-host-recheck-2026-10-30.md).
+```sh
+python3 -m http.server 4175 --bind 127.0.0.1 --directory work/preview
+```
 
-After `pnpm package:local` has generated the sanitized `work/package/session-lens` directory, register the repository as a local Codex marketplace and install the plugin for a new local chat:
+浏览 `http://127.0.0.1:4175/` 可查看 `fixture-alpha`，`http://127.0.0.1:4175/?fixture=beta` 可查看用量未知的示例。该网页是独立预览，不是 Codex MCP Apps 宿主。
+
+## 安装到本地 Codex
+
+先运行 `pnpm package:local` 生成经过净化的构建目录，然后将仓库注册为本地 marketplace 并安装：
 
 ```sh
 codex plugin marketplace add /absolute/path/to/session-lens
@@ -27,44 +43,21 @@ codex plugin add session-lens@session-lens-local
 codex plugin list --json
 ```
 
-The repository includes `.agents/plugins/marketplace.json` pointing only to the sanitized build output, so Codex does not copy `.git`, `node_modules`, browser logs, source or tests into its plugin cache. Restart the desktop app after registering the marketplace, then use a new local chat to test the `open_session` thread entrypoint. The L0 panel intentionally reports that the thread identity, lifecycle stream, and token source are unavailable; it does not show fixture usage or capture content. The separate `open_demo` tool and standalone preview remain synthetic protocol demonstrations. Lifecycle hooks are still untrusted and do not supply data.
+安装或更新后，重启 Codex 桌面端并在**新聊天**中打开 `open_session` 入口。验证中文版本时，请先用当前代码重新运行 `pnpm package:local`，再重新加载或安装更新后的本地插件。插件市场目录只指向净化后的 `work/package/session-lens`，不会把 `.git`、`node_modules`、源代码测试目录或浏览器日志带入插件缓存。
 
-Packaging targets macOS `bsdtar`: archive ownership is normalized to uid/gid 0 and root/root, and extended attributes, ACLs, AppleDouble metadata and pre-existing `._*` sidecar files are excluded. `tests/package.test.ts` exercises the real packaging script with synthetic sidecar and xattr files on macOS and inspects all archive headers. Hook tests use independently created OS temporary directories, so `pnpm test` also works before an ignored `work/` directory exists. The packaging verification tests require `python3` for archive inspection and macOS `xattr` for the synthetic metadata fixture.
+### 提供的工具
 
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) preserves full supplied license and copyright files for the complete installed production dependency closure, conservatively covering both bundles and tree-shaken production packages. Packaging regenerates and includes it. After changing dependencies, run `node scripts/generate-third-party-notices.mjs` and commit the refreshed file with the lockfile.
+- `open_session`：在当前 Codex 聊天中打开 Session Lens；展示会话绑定状态，不读取或采集聊天内容、生命周期事件或 Token 用量。
+- `open_demo`：打开预设合成示例，不绑定当前聊天。
+- `read_demo`：重新读取同一份内存中的合成快照。
+- `advance_demo`：显示预设的第二条合成事件；不采集真实事件。
 
-To view the standalone synthetic preview:
+## 技术与证据
 
-```sh
-python3 -m http.server 4175 --bind 127.0.0.1 --directory work/preview
-```
+插件采用 TypeScript、React/Vite 与官方 MCP TypeScript SDK。入口和 UI 资源使用 MCP Apps thread entrypoint。当前 UI 资源不请求外部域名，用户内容按普通文本渲染。
 
-Open `http://127.0.0.1:4175/` for `fixture-alpha`, or `http://127.0.0.1:4175/?fixture=beta` for explicit unknown usage. Standalone preview is clearly labeled and uses only in-memory fixtures. It is not an MCP Apps host. The real resource uses the MCP Apps bridge when embedded in an iframe.
+本次界面本地化使用简体中文作为默认语言，并提供英语切换。完整的 UI 与浏览器宽度验证记录见[中文界面验收记录](evidence/i18n-browser-checks.md)。独立浏览器验证只能证明预览 UI 的文案和响应式布局，不能代替 Codex 桌面端证据。
 
-## Plugin layout and tools
+技术栈版本、宿主实测范围、事件/Token 来源和 L0 阻塞项见[兼容性记录](compatibility.json)、[宿主复测记录](evidence/l0-host-recheck-2026-10-30.md)与[本地 Codex 测试记录](evidence/local-codex-host-test.json)。官方资料：[Codex App Server](https://learn.chatgpt.com/docs/app-server)、[Hooks](https://learn.chatgpt.com/docs/hooks)、[插件打包](https://developers.openai.com/plugins/build/plugins)、[MCP 扩展](https://developers.openai.com/plugins/build/extensions)。
 
-- `plugin.json` / `mcp.json`: official portable Agent Plugins layout with local stdio transport.
-- `.codex-plugin/plugin.json` / `.mcp.json`: explicit supported Codex compatibility layout. OpenAI settings match the portable manifest; the portable extension is authoritative when present.
-- `hooks/hooks.json` / `hooks/noop.sh`: a single no-op SessionStart command, silent exit 0, no stdin parsing and no file reads or writes.
-- `src/contracts.ts`: strict version-1 `EventEnvelope` and `UsageObservation` schemas and inferred TypeScript types. Unknown usage contains a reason, not zero counters. Timing and causal links stay null/unknown.
-- `src/adapters.ts`: caller-supplied synthetic values only. Parses the evidenced App Server notification and documented hook identity. Never opens `transcript_path` or a socket.
-- `open_session`: Codex thread-side-panel entrypoint. The standard entrypoint call has empty arguments, while Codex App Server injects the current thread ID into MCP tool-call metadata under `threadId`. Session Lens binds only when that exact field is a nonempty string, returns no identifier, and keeps collection off. Other identity-like metadata keys do not establish a binding.
-- `open_demo`: render one explicitly named fixture session. `read_demo`: reread it. `advance_demo`: reveal its second predefined fixture event in memory. The latter two are app-visible tools; refresh is manual, not a proven push/live feed. No tool accepts a real session ID.
-
-All UI assets are embedded in the resource. Its CSP declares no external connect/resource domains. React renders untrusted labels as text. No cloud service, account, billing, execution engine, ranking, real session capture, or persistent storage exists. Consequently no personal collection can be enabled here; a later collector must require per-session opt-in and sanitize before persistence. The hook itself cannot stop, approve, rewrite, or add context.
-
-## Source evidence and token scope
-
-The [official App Server docs](https://learn.chatgpt.com/docs/app-server) describe `thread/tokenUsage/updated`. The [Codex App Server MCP processor](https://github.com/openai/codex/blob/main/codex-rs/app-server/src/request_processors/mcp_processor.rs) injects the current thread ID into MCP tool-call metadata as `threadId`; the local CLI call and `pnpm probe:host-isolation` confirmed the binding path with two concurrent ephemeral threads. The probe prints no IDs, starts no model turns, and writes no thread data. Exact usage field types were generated from the installed CLI with `codex app-server generate-ts --out work/protocol`; three unmodified generated types and a method excerpt are retained under `evidence/codex-0.162.0-alpha.17.2/`. Synthetic fixtures match that installed shape, including `total`, `last`, `inputTokens`, `outputTokens`, `cachedInputTokens`, `cacheWriteInputTokens`, `reasoningOutputTokens`, and `totalTokens`. The adapter selects the **thread's total snapshot**. It never adds successive cumulative snapshots, adds subsets a second time, estimates from text, or distributes thread totals to tools. These are schema-backed synthetic values, not a real authoritative usage observation. `provenance: synthetic-fixture` is mandatory for parsed reported counters in this L0 contract.
-
-The [official Hooks docs](https://learn.chatgpt.com/docs/hooks) document `session_id`, `hook_event_name`, and nullable `transcript_path`; subagent hook IDs refer to the parent session. No live path or content was inspected. Rollout JSONL is **unstable** and is **not implemented as an input adapter**. A JSONL-shaped object is rejected as unknown; the example transcript path in the hook fixture is invented synthetic data and never read.
-
-The [official packaging docs](https://developers.openai.com/plugins/build/plugins) describe the portable layout, local marketplaces and hook trust. The [MCP extension docs](https://developers.openai.com/plugins/build/extensions) describe thread entrypoints that open MCP Apps within a conversation. The [MCP Apps spec](https://github.com/openai/mcp-extensions/blob/main/docs/spec.md#thread-entrypoint) states that the entrypoint tool receives `{}` as arguments. Codex App Server separately supplies the thread context in `_meta.threadId` for MCP tool calls.
-
-## Manual host validation still required
-
-The plugin is installed and enabled in the local Codex CLI profile. An ephemeral `codex exec` call returned `host-bound`, and `pnpm probe:host-isolation` created two concurrent ephemeral App Server threads; each MCP tool call bound to its own thread context while collection stayed off. CLI did not render the MCP App, and these zero-event calls do not prove event-level UI isolation. A real `turn.completed.usage` counter appeared for a separate isolated CLI turn, but the plugin cannot read that parent turn's usage. See [sanitized host-test evidence](evidence/local-codex-host-test.json).
-
-The native thread panel still needs to be opened in the desktop app to record actual host rendering. Although the local CLI profile reports Session Lens installed and enabled, the current desktop chat exposes no Session Lens MCP tools; reload the local plugin and use a fresh local chat to test its entrypoint before treating the renderer as unsupported. OpenAI's [MCP server and UI quickstart](https://developers.openai.com/plugins/build/app-quickstart) describes optional UI in ChatGPT, and the [UI guide](https://developers.openai.com/plugins/build/chatgpt-ui) says other hosts must be MCP Apps-compatible; neither explicitly confirms this Codex desktop build. Host support remains unverified. The binding path is verified, but the installed local plugin's hook is a no-op and remains untrusted. A Codex right-side **browser preview** is separate from the plugin's MCP Apps surface. Standalone Chromium width screenshots are in `evidence/`; they do not prove host layout behavior.
-
-To clear L0, record actual Codex-hosted evidence of all four conditions: the requested MCP Apps side-panel surface; two disposable real sessions bound and isolated with their own event records; a new real event visible after refresh; and at least one authoritative input/output token counter with source and scope. Preserve only sanitized evidence, then rerun the gate. Stop if any condition remains unproven; do not start Tasks 2–4.
+`THIRD_PARTY_NOTICES.md` 收录生产依赖所需的许可证和版权文本。变更依赖后，请运行 `node scripts/generate-third-party-notices.mjs` 并随锁文件提交更新后的 notices。

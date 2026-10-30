@@ -1,91 +1,126 @@
 import type { SessionLensSnapshot } from '../demo';
-export function SessionLensView({ snapshot, status, busy, refresh, advance }: { snapshot: SessionLensSnapshot | null; status: string; busy: boolean; refresh: () => void; advance: () => void }) {
-  if (!snapshot) return <main>
-    <header><p className="eyebrow">L0 · Codex thread entrypoint</p><h1>Session Lens</h1>
-      <p className="notice">Collection off · waiting for host</p></header>
-    <section aria-label="Host response status">
-      <h2>等待 Codex 宿主响应</h2>
-      <p>尚未收到会话绑定或事件快照。当前没有读取或保存会话内容。</p>
-      <p role="status" aria-live="polite">{status}</p>
+import { formatStatus, formatTokens, messages, nextLanguage, type Language, type StatusKey } from './i18n';
+
+type ViewProps = {
+  snapshot: SessionLensSnapshot | null;
+  status: StatusKey;
+  revision?: number | string | undefined;
+  busy: boolean;
+  refresh: () => void;
+  advance: () => void;
+  language?: Language;
+  onLanguageChange?: (language: Language) => void;
+};
+
+function Header({ language, onLanguageChange, eyebrow, notice }: {
+  language: Language;
+  onLanguageChange: (language: Language) => void;
+  eyebrow: string;
+  notice: string;
+}) {
+  const copy = messages[language];
+  return <header>
+    <div className="header-top">
+      <p className="eyebrow">{eyebrow}</p>
+      <button
+        className="language-switch"
+        type="button"
+        aria-label={copy.languageButtonLabel}
+        onClick={() => onLanguageChange(nextLanguage(language))}
+      >{copy.languageButton}</button>
+    </div>
+    <h1>Session Lens</h1>
+    <p className="notice">{notice}</p>
+  </header>;
+}
+
+export function SessionLensView({ snapshot, status, revision, busy, refresh, advance, language = 'zh-CN', onLanguageChange = () => {} }: ViewProps) {
+  const copy = messages[language];
+  const statusText = formatStatus(language, status, revision);
+
+  if (!snapshot) return <main lang={language}>
+    <Header language={language} onLanguageChange={onLanguageChange} eyebrow={copy.threadEyebrow} notice={copy.waitingNotice} />
+    <section aria-label={copy.hostBindingStatus}>
+      <h2>{copy.waitingTitle}</h2>
+      <p>{copy.waitingDescription}</p>
+      <p role="status" aria-live="polite">{statusText}</p>
     </section>
-    <section aria-label="Unavailable usage">
-      <h2>Token 用量</h2>
-      <dl><div><dt>输入</dt><dd>不可用</dd></div><div><dt>输出</dt><dd>不可用</dd></div><div><dt>来源</dt><dd>未连接</dd></div></dl>
+    <section aria-label={copy.unavailableUsage}>
+      <h2>{copy.tokenUsageTitle}</h2>
+      <dl><div><dt>{copy.inputTokens}</dt><dd>{copy.unavailable}</dd></div><div><dt>{copy.outputTokens}</dt><dd>{copy.unavailable}</dd></div><div><dt>{copy.source}</dt><dd>{copy.notConnected}</dd></div></dl>
     </section>
-    <footer>Session Lens 0.1.0-l0 · No session data captured</footer>
+    <footer>Session Lens 0.1.0-l0 · {copy.footerNoCapture}</footer>
   </main>;
 
-  if (snapshot?.mode === 'host-bound') return <main>
-    <header><p className="eyebrow">L0 · Codex thread entrypoint</p><h1>Session Lens</h1>
-      <p className="notice">已识别线程 · 采集关闭</p></header>
-    <section aria-label="Host binding status">
-      <h2>已识别当前 Codex 线程</h2>
-      <p>Codex App Server 提供了当前线程标识。Session Lens 不回显或持久化 thread ID。</p>
-      <p role="status" aria-live="polite">{status}</p>
+  if (snapshot.mode === 'host-bound') return <main lang={language}>
+    <Header language={language} onLanguageChange={onLanguageChange} eyebrow={copy.threadEyebrow} notice={copy.boundNotice} />
+    <section aria-label={copy.hostBindingStatus}>
+      <h2>{copy.boundTitle}</h2>
+      <p>{copy.boundDescription}</p>
+      <p role="status" aria-live="polite">{statusText}</p>
     </section>
-    <section aria-label="Unavailable usage">
-      <h2>Token 用量</h2>
-      <dl><div><dt>输入</dt><dd>不可用</dd></div><div><dt>输出</dt><dd>不可用</dd></div><div><dt>来源</dt><dd>未连接</dd></div></dl>
-      <p className="muted">当前版本尚未接入真实 usage 通知；不使用字符数估算。</p>
+    <section aria-label={copy.unavailableUsage}>
+      <h2>{copy.tokenUsageTitle}</h2>
+      <dl><div><dt>{copy.inputTokens}</dt><dd>{copy.unavailable}</dd></div><div><dt>{copy.outputTokens}</dt><dd>{copy.unavailable}</dd></div><div><dt>{copy.source}</dt><dd>{copy.notConnected}</dd></div></dl>
+      <p className="muted">{copy.noRealUsage}</p>
     </section>
-    <section aria-label="Collection status"><h2>采集状态</h2><p>线程上下文已识别，生命周期采集尚未接入；未采集事件。</p></section>
-    <footer>Session Lens 0.1.0-l0 · Bound to host context · No session data captured</footer>
+    <section aria-label={copy.collectionStatus}><h2>{copy.collectionStatus}</h2><p>{copy.noHostCapture}</p></section>
+    <footer>Session Lens 0.1.0-l0 · {copy.footerBound}</footer>
   </main>;
 
-  if (snapshot?.mode === 'host-unbound') {
-    const identityLabels = snapshot.identityProbe.identityMetadataKinds.map((kind) => ({ thread: '线程', conversation: '对话', session: '会话' })[kind]);
+  if (snapshot.mode === 'host-unbound') {
+    const identityLabels = snapshot.identityProbe.identityMetadataKinds.map((kind) => copy.identityLabels[kind]);
     const identityMessage = identityLabels.length
-      ? `检测到${identityLabels.join('、')}身份类 metadata 键名；未验证其能否绑定当前会话。`
-      : '未检测到名称对应线程、对话或会话标识的 metadata 键。';
-    return <main>
-    <header><p className="eyebrow">L0 · Codex thread entrypoint</p><h1>Session Lens</h1>
-      <p className="notice">{identityLabels.length ? 'Collection off · identity metadata unverified' : 'Collection off · host identity unavailable'}</p></header>
-    <section aria-label="Host binding status">
-      <h2>未绑定当前会话</h2>
-      <p>{identityMessage}{snapshot.identityProbe.mcpTransportSessionIdPresent ? ' MCP 传输 session ID 仅用于传输，不代表 Codex 对话标识。' : ''}</p>
-      <p>本版本尚未连接生命周期事件流，因此不会读取或保存此对话内容。诊断只显示类别，不读取或显示 metadata 键名与字段值。</p>
-      <p role="status" aria-live="polite">{status}</p>
-    </section>
-    <section aria-label="Unavailable usage">
-      <h2>Token 用量</h2>
-      <dl><div><dt>输入</dt><dd>不可用</dd></div><div><dt>输出</dt><dd>不可用</dd></div><div><dt>来源</dt><dd>未连接</dd></div></dl>
-      <p className="muted">不使用字符数估算，也不展示合成计数。</p>
-    </section>
-    <section aria-label="Collection status"><h2>采集状态</h2><p>未采集任何事件。Hooks 仍未获信任，内容采集保持关闭。</p></section>
-    <footer>Session Lens 0.1.0-l0 · No session data captured</footer>
+      ? copy.detectedIdentity(identityLabels.join(copy.identityListSeparator))
+      : copy.missingIdentity;
+    const notice = identityLabels.length ? copy.unboundNoticeWithMetadata : copy.unboundNoticeWithoutMetadata;
+    return <main lang={language}>
+      <Header language={language} onLanguageChange={onLanguageChange} eyebrow={copy.threadEyebrow} notice={notice} />
+      <section aria-label={copy.hostBindingStatus}>
+        <h2>{copy.unboundTitle}</h2>
+        <p>{identityMessage}{snapshot.identityProbe.mcpTransportSessionIdPresent ? ` ${copy.transportIdExplanation}` : ''}</p>
+        <p>{copy.noLifecycleEvents}</p>
+        <p role="status" aria-live="polite">{statusText}</p>
+      </section>
+      <section aria-label={copy.unavailableUsage}>
+      <h2>{copy.tokenUsageTitle}</h2>
+        <dl><div><dt>{copy.inputTokens}</dt><dd>{copy.unavailable}</dd></div><div><dt>{copy.outputTokens}</dt><dd>{copy.unavailable}</dd></div><div><dt>{copy.source}</dt><dd>{copy.notConnected}</dd></div></dl>
+        <p className="muted">{copy.noEstimate}</p>
+      </section>
+      <section aria-label={copy.collectionStatus}><h2>{copy.collectionStatus}</h2><p>{copy.noEventsCollected}</p></section>
+      <footer>Session Lens 0.1.0-l0 · {copy.footerUnbound}</footer>
     </main>;
   }
 
-  const demo = snapshot?.mode === 'synthetic-fixture' ? snapshot : null;
+  const demo = snapshot.mode === 'synthetic-fixture' ? snapshot : null;
   const usage = demo?.usage;
-  return <main>
-    <header><p className="eyebrow">L0 · Synthetic fixture</p><h1>Session Lens</h1>
-      <p className="notice">Host gates unverified · Collection off</p></header>
-    <section aria-label="Session details">
-      <h2>{demo?.sessionId ?? 'Waiting for fixture'}</h2>
-      <p>Binding: {demo?.currentSessionBinding ?? 'unverified'} · Coverage: unknown</p>
-      <p role="status" aria-live="polite">{status}</p>
+  return <main lang={language}>
+    <Header language={language} onLanguageChange={onLanguageChange} eyebrow={copy.demoEyebrow} notice={copy.demoNotice} />
+    <section aria-label={copy.sessionDetails}>
+      <h2>{demo ? copy.fixtureSessionLabel(demo.sessionId) : copy.waitingFixture}</h2>
+      <p>{copy.binding}{copy.labelSeparator}{demo ? copy.fixtureUnverified : copy.unknown} · {copy.coverage}{copy.labelSeparator}{copy.fixtureCoverageUnknown}</p>
+      <p role="status" aria-live="polite">{statusText}</p>
       <div className="actions">
-        <button type="button" onClick={refresh} disabled={busy || !demo}>Refresh</button>
-        <button type="button" onClick={advance} disabled={busy || !demo || demo.revision >= 1}>Reveal fixture event</button>
+        <button type="button" onClick={refresh} disabled={busy || !demo}>{copy.refresh}</button>
+        <button type="button" onClick={advance} disabled={busy || !demo || demo.revision >= 1}>{copy.revealEvent}</button>
       </div>
-      <p className="muted">Two predefined snapshots only. Refresh reads state; reveal advances this fixture. No real chat is being observed.</p>
+      <p className="muted">{copy.fixtureExplanation}</p>
     </section>
-    <section aria-label="Usage snapshot"><h2>Cumulative thread snapshot</h2>
+    <section aria-label={copy.usageSnapshot}><h2>{copy.usageSnapshot}</h2>
       {usage?.status === 'reported' ? <>
-        <dl><div><dt>Input</dt><dd>{usage.counters.inputTokens.toLocaleString('en-US')}</dd></div>
-          <div><dt>Output</dt><dd>{usage.counters.outputTokens.toLocaleString('en-US')}</dd></div>
-          <div><dt>Total</dt><dd>{usage.counters.totalTokens.toLocaleString('en-US')}</dd></div></dl>
-        <p>Cached input: {usage.counters.cachedInputTokens} (input subset). Reasoning output: {usage.counters.reasoningOutputTokens} (output subset).</p>
-        <p className="muted">Synthetic values in the evidenced App Server shape. Never summed across snapshots or attributed to tools.</p>
-      </> : <p>Unknown — no usage counter available. No estimate.</p>}
+        <dl><div><dt>{copy.inputTokens}</dt><dd>{formatTokens(usage.counters.inputTokens, language)}</dd></div>
+          <div><dt>{copy.outputTokens}</dt><dd>{formatTokens(usage.counters.outputTokens, language)}</dd></div>
+          <div><dt>{copy.totalTokens}</dt><dd>{formatTokens(usage.counters.totalTokens, language)}</dd></div></dl>
+        <p>{copy.usageBreakdown(usage.counters.cachedInputTokens, usage.counters.reasoningOutputTokens)}</p>
+        <p className="muted">{copy.syntheticUsageExplanation}</p>
+      </> : <p>{copy.unknownUsage}</p>}
     </section>
-    <section aria-label="Fixture events"><h2>Events <span className="muted">{demo?.events.length ?? 0}</span></h2>
+    <section aria-label={copy.events}><h2>{copy.events} <span className="muted">{demo?.events.length ?? 0}</span></h2>
       <ol>{demo?.events.map((event) => <li key={event.id}>
-        <strong>{event.label}</strong><p>{event.observedAt}</p>
-        <p className="muted">Occurrence time: unknown · Causal link: unknown</p>
+        <strong>{copy.fixtureEventLabel(event.label)}</strong><p>{event.observedAt}</p>
+        <p className="muted">{copy.occurrenceTime} · {copy.causalLink}</p>
       </li>)}</ol>
     </section>
-    <footer>Session Lens 0.1.0-l0 · Local protocol demo · Gate blocked</footer>
+    <footer>Session Lens 0.1.0-l0 · {copy.footerDemo}</footer>
   </main>;
 }

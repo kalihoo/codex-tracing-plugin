@@ -16,9 +16,9 @@
     "allowLaterPhases": false,
     "requirements": [
       {
-        "id": "codex-mcp-app-side-panel", "status": "blocked",
-        "reason": "The user reports the entrypoint is visible in a fresh local Codex chat, and its thread record confirms an open_session call completed. The fresh-chat probe did not find an inspectable MCP Apps tab, so actual side-panel rendering remains unverified; the current chat still exposes no Session Lens tools.",
-        "missingEvidence": "Actual Codex desktop render of ui://session-lens/l0-v1.html in the conversation side-panel surface."
+        "id": "codex-mcp-app-side-panel", "status": "passed",
+        "reason": "The user confirmed that opening open_session in a separate fresh local Codex chat displayed the Session Lens panel. The coordinating surface could not independently inspect that chat's MCP Apps tab, so the render evidence is user-confirmed rather than screenshot-verified. The original chat still exposes no Session Lens tools.",
+        "evidence": "evidence/l0-host-recheck-2026-10-30.md"
       },
       {
         "id": "current-session-binding-and-two-session-isolation", "status": "blocked",
@@ -39,7 +39,7 @@
   },
   "localValidation": {
     "strictTypesAndBuild": "passed",
-    "vitest": { "status": "passed", "tests": 46, "files": 7 },
+    "vitest": { "status": "passed", "tests": 53, "files": 7 },
     "mcpInMemoryProtocol": "passed",
     "bundledStdioWithoutNodeModules": { "status": "passed", "evidence": "evidence/stdio-smoke.json" },
     "fixtureIsolation": { "sessions": 2, "status": "passed", "realHostEvidence": false },
@@ -48,8 +48,8 @@
     "localMarketplace": { "status": "registered", "sourceIsSanitizedBuild": true },
     "codexCliPluginInstall": { "status": "installed-and-enabled", "cacheContainsRepositoryInternals": false, "hooksTrusted": false },
     "currentDesktopChatActivation": { "pluginInstalledInCliProfile": true, "sessionLensMcpToolsExposed": false, "entrypointVisibleInCurrentChat": false, "userConfirmedEntrypointInvisible": true, "codexMcpAppsTabCount": 0, "cause": "unknown", "evidence": "evidence/l0-host-recheck-2026-10-30.md" },
-    "freshDesktopChatActivation": { "entrypointVisible": true, "source": "user-confirmed", "openSessionToolCallCompleted": true, "mcpAppsPanelTabFound": false, "actualPanelRenderVerified": false, "cause": "unknown", "evidence": "evidence/l0-host-recheck-2026-10-30.md" },
-    "codexDesktopMcpAppsUiSupport": { "status": "unverified", "officialDocsExplicitlyConfirmThisCodexBuild": false, "currentSurfaceTabCount": 0, "evidence": "evidence/l0-host-recheck-2026-10-30.md", "sources": ["https://developers.openai.com/plugins/build/app-quickstart", "https://developers.openai.com/plugins/build/chatgpt-ui"] },
+    "freshDesktopChatActivation": { "entrypointVisible": true, "source": "user-confirmed", "openSessionToolCallCompleted": true, "panelDisplayUserConfirmed": true, "actualPanelRenderVerified": true, "independentMcpAppsPanelTabFound": false, "cause": "The host surface could not independently inspect the separate fresh chat", "evidence": "evidence/l0-host-recheck-2026-10-30.md" },
+    "codexDesktopMcpAppsUiSupport": { "status": "user-confirmed-render-on-tested-build", "officialDocsExplicitlyConfirmThisCodexBuild": false, "currentSurfaceTabCount": 0, "freshChatPanelDisplayUserConfirmed": true, "evidence": "evidence/l0-host-recheck-2026-10-30.md", "sources": ["https://developers.openai.com/plugins/build/app-quickstart", "https://developers.openai.com/plugins/build/chatgpt-ui"] },
     "codexCliMcpCall": { "status": "passed", "tool": "open_session", "returnedMode": "host-bound", "sessionBinding": "codex-thread-id", "collectionEnabled": false, "mcpTransportSessionIdPresent": false, "codexThreadIdPresent": true, "identityMetadataKinds": ["thread", "session"], "threadIdReturnedOrPersisted": false, "mcpAppUiRendered": false, "evidence": "evidence/local-codex-host-test.json" },
     "codexAppServerThreadIsolationProbe": { "status": "passed", "ephemeralThreads": 2, "threadContextsDistinct": true, "mcpToolCallsConcurrent": true, "bothBoundToCodexThreadId": true, "collectionEnabled": false, "eventCounts": [0, 0], "rawThreadIdsReturnedOrPersisted": false, "modelTurnsStarted": false, "evidence": "evidence/local-codex-host-test.json" },
     "codexAppServerMetadataProbe": { "status": "thread-id-match", "resumeStatus": "blocked-active-writer", "turnContentPersistedByProbe": false },
@@ -60,7 +60,8 @@
     "codexCliSessionStartHookProbe": { "status": "temporary-hook-event-observed", "sessionStartAnnounced": true, "sessionIdPresent": true, "transcriptPathPresent": false, "cwdPresent": true, "sourcePresent": true, "installedPluginHookTested": false, "modelTurnTokensDisplayed": 9004, "persistentSessionFiles": false, "rawEventFieldsPersisted": false, "evidence": "evidence/l0-host-recheck-2026-10-30.md" },
     "codexAppServerSessionStartHookProbe": { "status": "not-observed-on-thread-start", "ephemeralThreadStarted": true, "modelTurnStarted": false, "invocationScopedHookTrustBypass": true, "rawEventFieldsReturnedOrPersisted": false, "evidence": "evidence/l0-host-recheck-2026-10-30.md" },
     "browserPreview": { "status": "observed-by-coordinating-agent", "placement": "Codex right browser panel", "fixtureRevision": [0, 1], "eventCount": [1, 2], "totalTokens": [1000, 2500], "mcpAppsHostEvidence": false, "evidence": "evidence/codex-browser-observation.md" },
-    "responsiveWidths": { "environment": "standalone Chromium", "requested": [360, 420, 720, 800], "evidence": "evidence/browser-results.txt", "actualCodexMcpWidthsVerified": false }
+    "responsiveWidths": { "environment": "standalone Chromium", "requested": [360, 420, 720, 800], "evidence": "evidence/browser-results.txt", "actualCodexMcpWidthsVerified": false },
+    "localizedUi": { "defaultLanguage": "zh-CN", "secondaryLanguage": "en", "switching": "passed-in-standalone-chromium", "standalonePreviewWidths": [360, 420, 720, 800], "horizontalOverflow": false, "actualCodexHostChineseRendering": "pending-reload-and-user-confirmation", "evidence": "evidence/i18n-browser-checks.md" }
   },
   "sources": [
     { "id": "codex-app-server", "version": "0.162.0-alpha.17.2", "shapeEvidence": "evidence/codex-0.162.0-alpha.17.2", "documentation": "https://learn.chatgpt.com/docs/app-server", "method": "thread/tokenUsage/updated", "scope": "thread", "aggregation": "cumulative-snapshot", "adapter": "fixture-only", "threadIdMetadataKey": "threadId", "threadBindingVerified": true, "threadIdInjectionSource": "https://github.com/openai/codex/blob/main/codex-rs/app-server/src/request_processors/mcp_processor.rs", "realUsageObservation": false, "localProbe": "two concurrent ephemeral App Server threads bound independently; separate resume of the active desktop thread was rejected due to its active writer" },

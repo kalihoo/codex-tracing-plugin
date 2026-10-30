@@ -7,6 +7,11 @@ import { describe, expect, it } from 'vitest';
 const json = (file: string): Record<string, unknown> => JSON.parse(readFileSync(file, 'utf8')) as Record<string, unknown>;
 
 describe('local-only plugin wiring', () => {
+  it('presents the local plugin listing in Chinese', () => {
+    expect(json('plugin.json').extensions).toMatchObject({ 'com.openai': { interface: { displayName: 'Session Lens（会话观察器 · L0）', shortDescription: '查看 Codex 会话入口状态和合成数据；当前不采集真实会话内容' } } });
+    expect(json('.codex-plugin/plugin.json').interface).toMatchObject({ displayName: 'Session Lens（会话观察器 · L0）', shortDescription: '查看 Codex 会话入口状态和合成数据；当前不采集真实会话内容' });
+  });
+
   it('uses portable manifests and an explicit Codex compatibility layout', () => {
     expect(json('plugin.json')).toMatchObject({ name: 'session-lens', extensions: { 'com.openai': { hooks: './hooks/hooks.json', requires_local_executor: true } } });
     expect(json('.codex-plugin/plugin.json')).toMatchObject({ name: 'session-lens', mcpServers: './.mcp.json', hooks: './hooks/hooks.json' });

@@ -2,6 +2,7 @@ import { App } from '@modelcontextprotocol/ext-apps';
 import { createRoot } from 'react-dom/client';
 import { DemoStore } from '../demo';
 import { DemoController } from './controller';
+import { type Language, type StatusKey } from './i18n';
 import { SessionLensView } from './view';
 import './style.css';
 
@@ -14,33 +15,37 @@ const controller = new DemoController(async (name, sessionId) => {
   return app.callServerTool({ name, arguments: { sessionId } });
 });
 let busy = false;
-let status = preview ? 'Standalone synthetic preview — no host bridge' : 'Waiting for MCP Apps host';
+let language: Language = 'zh-CN';
+let status: StatusKey = preview ? 'standalone-preview' : 'waiting-host';
+let revision: number | undefined;
 function render() {
-  root.render(<SessionLensView snapshot={controller.current} status={status} busy={busy}
+  document.documentElement.lang = language;
+  root.render(<SessionLensView snapshot={controller.current} status={status} revision={revision} language={language}
+    onLanguageChange={(next) => { language = next; render(); }} busy={busy}
     refresh={() => { void run('refresh'); }} advance={() => { void run('advance'); }} />);
 }
 async function run(action: 'refresh' | 'advance') {
   if (busy) return;
   busy = true;
-  status = 'Refreshing fixture…';
+  status = 'refreshing';
   render();
   try {
     await controller[action]();
-    const revision = controller.current?.mode === 'synthetic-fixture' ? controller.current.revision : 'unknown';
-    status = `Fixture revision ${revision} · host gates unverified`;
-  } catch { status = 'Fixture refresh unavailable. Last valid snapshot retained.'; }
+    revision = controller.current?.mode === 'synthetic-fixture' ? controller.current.revision : undefined;
+    status = 'fixture-revision';
+  } catch { status = 'refresh-unavailable'; }
   finally { busy = false; render(); }
 }
 app.ontoolresult = (result) => {
   try {
     controller.receive(result);
     status = controller.current?.mode === 'host-unbound'
-      ? 'Codex thread panel opened · session identity unavailable · collection off'
+      ? 'host-unbound'
       : controller.current?.mode === 'host-bound'
-        ? 'Codex thread context recognized · collection off'
-        : 'Synthetic fixture ready · host gates unverified';
+        ? 'host-bound'
+        : 'demo-ready';
   }
-  catch { status = 'Rejected invalid or mismatched fixture snapshot.'; }
+  catch { status = 'invalid-snapshot'; }
   render();
 };
 app.onhostcontextchanged = (context) => {
@@ -55,5 +60,5 @@ if (previewStore) {
   void app.connect(undefined, { timeout: 5000 }).then(() => {
     const theme = app.getHostContext()?.theme;
     if (theme === 'dark' || theme === 'light') document.documentElement.dataset.theme = theme;
-  }).catch(() => { status = 'MCP Apps bridge unavailable. Host gate remains blocked.'; render(); });
+  }).catch(() => { status = 'bridge-unavailable'; render(); });
 }

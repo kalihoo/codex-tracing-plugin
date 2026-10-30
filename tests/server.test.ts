@@ -18,6 +18,19 @@ async function connect() {
 }
 
 describe('real MCP protocol, synthetic data', () => {
+  it('uses Chinese for user-facing tool metadata and responses', async () => {
+    const client = await connect();
+    const tools = (await client.listTools()).tools;
+    const open = tools.find((item) => item.name === 'open_session');
+    const demo = tools.find((item) => item.name === 'open_demo');
+    expect(open?.title).toContain('在当前对话中打开');
+    expect(open?.description).toContain('不会读取或采集');
+    expect(demo?.title).toContain('合成数据示例');
+    expect(demo?.description).toContain('不会绑定或采集');
+    const result = await client.callTool({ name: 'open_session', arguments: {} });
+    expect(JSON.stringify(result.content)).toContain('原始 metadata 键名与标识值不会返回或保存');
+  });
+
   it('advertises a Codex thread-side-panel entrypoint with an explicit unbound state', async () => {
     const client = await connect();
     const tool = (await client.listTools()).tools.find((item) => item.name === 'open_session');

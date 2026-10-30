@@ -7,16 +7,16 @@ export function createServer(html: string): McpServer {
   const server = new McpServer({ name: 'session-lens', version: '0.1.0-l0' });
   const store = new DemoStore();
   const result = (snapshot: DemoSnapshot) => ({
-    content: [{ type: 'text' as const, text: `Synthetic fixture ${snapshot.sessionId}; revision ${snapshot.revision}; collection off; all Codex host gates unverified.` }],
+    content: [{ type: 'text' as const, text: `合成示例会话 ${snapshot.sessionId}；版本 ${snapshot.revision}；采集已关闭；Codex 宿主能力尚未验证。` }],
     structuredContent: { ...snapshot },
   });
-  registerAppResource(server, 'session-lens-demo', UI_URI, { description: 'Synthetic Session Lens L0 UI; no host capture.' }, async () => ({
+  registerAppResource(server, 'session-lens-demo', UI_URI, { description: 'Session Lens L0 合成数据界面；不采集真实会话。' }, async () => ({
     contents: [{ uri: UI_URI, mimeType: RESOURCE_MIME_TYPE, text: html,
       _meta: { ui: { prefersBorder: true, csp: { connectDomains: [], resourceDomains: [] } } } }],
   }));
   registerAppTool(server, 'open_session', {
-    title: 'Open Session Lens in this conversation',
-    description: 'Open the local Session Lens side panel for this Codex conversation. This L0 prototype displays host-binding status only; it does not read or collect conversation content, lifecycle events, or token usage.',
+    title: '在当前对话中打开 Session Lens',
+    description: '在 Codex 当前对话的侧栏中打开本地 Session Lens。此 L0 原型仅显示宿主绑定状态；不会读取或采集对话内容、生命周期事件或 Token 用量。',
     inputSchema: {},
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     _meta: {
@@ -43,26 +43,26 @@ export function createServer(html: string): McpServer {
       });
     return {
       content: [{ type: 'text' as const, text: codexThreadIdPresent
-        ? 'Session Lens recognized the Codex thread context. The thread ID is not returned; collection remains off.'
-        : 'Session Lens found no Codex thread ID metadata. Identity-like key categories were checked without reading key or value; collection remains off.' }],
+        ? 'Session Lens 已识别 Codex 当前会话上下文。线程 ID 不会返回；采集保持关闭。'
+        : 'Session Lens 未检测到 Codex 会话标识。仅返回身份类别和布尔状态；原始 metadata 键名与标识值不会返回或保存，采集保持关闭。' }],
       structuredContent: snapshot,
     };
   });
   registerAppTool(server, 'open_demo', {
-    title: 'Open Session Lens synthetic demo',
-    description: 'Inspect a chosen synthetic fixture session in the L0 UI. Does not bind to or collect the current Codex chat. Host side-panel support is unverified.',
+    title: '打开 Session Lens 合成数据示例',
+    description: '在 L0 界面查看指定的合成示例会话。不会绑定或采集当前 Codex 对话；宿主侧栏能力尚未完成验收。',
     inputSchema: { sessionId: DemoSessionIdSchema },
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     _meta: { ui: { resourceUri: UI_URI } },
   }, async ({ sessionId }) => result(store.read(sessionId)));
   registerAppTool(server, 'read_demo', {
-    description: 'Refresh the same synthetic fixture snapshot without adding an event. No host or disk reads.',
+    description: '重新读取同一份合成示例快照，不会新增事件，也不会读取宿主或磁盘。',
     inputSchema: { sessionId: DemoSessionIdSchema },
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     _meta: { ui: { visibility: ['app'] } },
   }, async ({ sessionId }) => result(store.read(sessionId)));
   registerAppTool(server, 'advance_demo', {
-    description: 'Reveal the second predefined synthetic event in one fixture session. Changes process memory only and stops at revision 1. Never captures a real event.',
+    description: '显示某个合成示例会话中预设的第二条事件。只修改进程内存，版本最高为 1；不会采集真实事件。',
     inputSchema: { sessionId: DemoSessionIdSchema },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     _meta: { ui: { visibility: ['app'] } },
